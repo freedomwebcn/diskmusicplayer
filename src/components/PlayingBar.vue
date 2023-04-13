@@ -99,7 +99,7 @@
                   <div class="h-full w-full overflow-hidden rounded-sm">
                     <div
                       class="fill | h-full w-full rounded-sm bg-white group-hover:bg-green-500"
-                      :style="{ transform: `translateX(calc(-100% + ${progressBarTransform}))`, backgroundColor: `${isShowBg ? 'rgb(34, 197, 94)' : ''}` }"
+                      :style="{ transform: `translateX(calc(-100% + ${progressBarTransform}))`, backgroundColor: `${!isAnimation ? 'rgb(34, 197, 94)' : ''}` }"
                     ></div>
                   </div>
                   <div class="dot | invisible absolute top-[50%] ml-[-6px] h-3 w-3 translate-y-[-50%] rounded-full bg-white group-hover:visible" :style="{ left: progressBarTransform }"></div>
@@ -132,11 +132,10 @@ import { onMounted, ref } from 'vue';
 let audioRef = ref(null);
 let progressBarTransform = ref('0%');
 let playing = ref(false);
-let isAnimation = false;
+let isAnimation = ref(false);
 let duration = ref('0:00');
 let currentTime = ref('0:00');
 let progressBarWrapperRef = ref(null);
-let isShowBg = ref(false);
 
 onMounted(() => {
   audioRef.value.volume = 0.1;
@@ -150,7 +149,7 @@ function togglePlay() {
 // 处理播放事件
 function play() {
   playing.value = true;
-  isAnimation = true;
+  isAnimation.value = true;
   requestAnimationFrame(updatePlayProgress);
 }
 
@@ -159,12 +158,12 @@ function updatePlayProgress() {
   const progressPercentage = audioRef.value.currentTime / audioRef.value.duration;
   progressBarTransform.value = `${progressPercentage * 100}%`;
   updateCurrentTime(audioRef.value.currentTime);
-  isAnimation && requestAnimationFrame(updatePlayProgress);
+  isAnimation.value && requestAnimationFrame(updatePlayProgress);
 }
 //处理暂停时间
 function paused() {
   playing.value = false;
-  isAnimation = false;
+  isAnimation.value = false;
 }
 
 // 音频元数据下载完毕后 更新时间
@@ -196,8 +195,7 @@ function getPercentage(event, element) {
 }
 
 function slideProgress(event) {
-  isAnimation = false;
-  isShowBg.value = true;
+  isAnimation.value = false;
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   progressBarTransform.value = `${percentage * 100}%`;
   const t = percentage * audioRef.value.duration;
@@ -207,8 +205,7 @@ function slideProgress(event) {
 function stopProgressSlide(event) {
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   audioRef.value.currentTime = audioRef.value.duration * percentage;
-  isAnimation = true;
-  isShowBg.value = false;
+  isAnimation.value = true;
   if (!audioRef.value.paused) {
     requestAnimationFrame(updatePlayProgress);
   }
