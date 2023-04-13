@@ -94,15 +94,21 @@
             <div class="flex w-full flex-row items-center justify-between gap-2">
               <div class="min-w-[40px] text-right text-xs text-[#a7a7a7]">{{ currentTime }}</div>
 
-              <div class="progress-bar-wrapper | group relative flex h-3 w-full cursor-pointer items-center" @mousedown="startProgressSlide" ref="progressBarWrapperRef">
+              <div class="progress-bar-wrapper | group relative flex h-3 w-full items-center" @mousedown="startProgressSlide" ref="progressBarWrapperRef">
                 <div class="progress-bar | relative h-1 w-full rounded-sm bg-[hsla(0,0%,100%,.3)]">
                   <div class="h-full w-full overflow-hidden rounded-sm">
                     <div
                       class="fill | h-full w-full rounded-sm bg-white group-hover:bg-green-500"
-                      :style="{ transform: `translateX(calc(-100% + ${progressBarTransform}))`, backgroundColor: `${!isAnimation ? 'rgb(34, 197, 94)' : ''}` }"
+                      :style="{ transform: `translateX(calc(-100% + ${progressBarTransform}))`, backgroundColor: `${showBgColor ? 'rgb(34, 197, 94)' : ''}` }"
                     ></div>
                   </div>
-                  <div class="dot | invisible absolute top-[50%] ml-[-6px] h-3 w-3 translate-y-[-50%] rounded-full bg-white group-hover:visible" :style="{ left: progressBarTransform }"></div>
+                  <div
+                    class="dot | absolute top-[50%] ml-[-6px] h-3 w-3 translate-y-[-50%] rounded-full bg-transparent group-hover:bg-white"
+                    :style="{
+                      left: progressBarTransform,
+                      backgroundColor: `${showBgColor ? 'white' : ''}`
+                    }"
+                  ></div>
                   <!-- <div class="progress-buffer | absolute top-0 h-full w-0 rounded-sm " ref="progressBufferRef"></div> -->
                 </div>
               </div>
@@ -136,6 +142,7 @@ let isAnimation = ref(false);
 let duration = ref('0:00');
 let currentTime = ref('0:00');
 let progressBarWrapperRef = ref(null);
+let showBgColor = ref(false);
 
 onMounted(() => {
   audioRef.value.volume = 0.1;
@@ -195,7 +202,7 @@ function getPercentage(event, element) {
 }
 
 function slideProgress(event) {
-  isAnimation.value = false;
+  showBgColor.value = !(isAnimation.value = false);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   progressBarTransform.value = `${percentage * 100}%`;
   const t = percentage * audioRef.value.duration;
@@ -203,9 +210,9 @@ function slideProgress(event) {
 }
 
 function stopProgressSlide(event) {
+  showBgColor.value = !(isAnimation.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   audioRef.value.currentTime = audioRef.value.duration * percentage;
-  isAnimation.value = true;
   if (!audioRef.value.paused) {
     requestAnimationFrame(updatePlayProgress);
   }
