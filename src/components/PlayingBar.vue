@@ -121,12 +121,6 @@
         <div class="flex w-[30%] justify-end">
           <div class="flex grow justify-end">1</div>
         </div>
-        <!--  @progress="updateBufferedProgress" -->
-        <!-- 
-          @timeupdate="updatePlayProgress"
-
-         -->
-        <audio src="/src/assets/李克勤 - 月半小夜曲.flac" ref="audioRef" @play="play" @pause="paused" @loadedmetadata="loadedmetadata"></audio>
       </div>
     </footer>
   </div>
@@ -135,7 +129,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 
-let audioRef = ref(null);
+let audio = null;
 let progressBarTransform = ref('0%');
 let playing = ref(false);
 let isAnimation = ref(false);
@@ -145,12 +139,19 @@ let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
 
 onMounted(() => {
-  audioRef.value.volume = 0.1;
+  audio = new Audio('http://127.0.0.1:5000/audio');
+  audio.addEventListener('play', play);
+  audio.addEventListener('pause', paused);
+  audio.addEventListener('loadedmetadata', loadedmetadata);
+  audio.addEventListener('error', (event) => {
+    alert('音频出错，请刷新重试！');
+  });
+  audio.volume = 0.1;
 });
 
 // 切换播放状态
 function togglePlay() {
-  audioRef.value.paused ? audioRef.value.play() : audioRef.value.pause();
+  audio.paused ? audio.play() : audio.pause();
 }
 
 // 处理播放事件
@@ -162,9 +163,9 @@ function play() {
 
 function updatePlayProgress() {
   console.log('playing...');
-  const progressPercentage = audioRef.value.currentTime / audioRef.value.duration;
+  const progressPercentage = audio.currentTime / audio.duration;
   progressBarTransform.value = `${progressPercentage * 100}%`;
-  updateCurrentTime(audioRef.value.currentTime);
+  updateCurrentTime(audio.currentTime);
   isAnimation.value && requestAnimationFrame(updatePlayProgress);
 }
 //处理暂停时间
@@ -175,8 +176,8 @@ function paused() {
 
 // 音频元数据下载完毕后 更新时间
 function loadedmetadata() {
-  duration.value = formatSongsTime(audioRef.value.duration);
-  updateCurrentTime(audioRef.value.currentTime);
+  duration.value = formatSongsTime(audio.duration);
+  updateCurrentTime(audio.currentTime);
 }
 
 //更新音乐时间
@@ -201,19 +202,21 @@ function getPercentage(event, element) {
   return Math.max(0, Math.min(position / element.offsetWidth, 1));
 }
 
+// 移动进度条
 function slideProgress(event) {
   showBgColor.value = !(isAnimation.value = false);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   progressBarTransform.value = `${percentage * 100}%`;
-  const t = percentage * audioRef.value.duration;
+  const t = percentage * audio.duration;
   updateCurrentTime(t);
 }
 
+// 停止调节进度条
 function stopProgressSlide(event) {
   showBgColor.value = !(isAnimation.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
-  audioRef.value.currentTime = audioRef.value.duration * percentage;
-  if (!audioRef.value.paused) {
+  audio.currentTime = audio.duration * percentage;
+  if (!audio.paused) {
     requestAnimationFrame(updatePlayProgress);
   }
   document.removeEventListener('mousemove', slideProgress);

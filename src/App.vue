@@ -341,6 +341,7 @@ main section .playlist .item-data-loading .playlist-name {
   position: relative;
   border-radius: 15px;
   margin-bottom: 5px;
+  background-color: hsla(0, 0%, 100%, 0.1);
 }
 
 main section .playlist .item-data-loading .track-count {
@@ -348,6 +349,7 @@ main section .playlist .item-data-loading .track-count {
   height: 25px;
   position: relative;
   border-radius: 15px;
+  background-color: hsla(0, 0%, 100%, 0.1);
 }
 
 main section .playlist .item-data-loading .cover::after,
