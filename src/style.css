@@ -1,5 +1,6 @@
-:root {
+@import url(./assets/font.css);
 
+:root {
   --container-padding: 1rem;
   --plr: 16px;
   --column-count: 9;
@@ -48,6 +49,7 @@ html:focus-within {
 html,
 body {
   height: 100%;
+  user-select: none;
 
 }
 

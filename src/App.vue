@@ -1,142 +1,138 @@
-
 <template>
   <div class="cotainer">
     <header>
       <div class="outer-bg" :style="{ opacity: scrollPositionRatio }" ref="headerOuterBgRef">
         <div class="inner-bg"></div>
       </div>
-      <button>
-        Search
-      </button>
+      <button>Search</button>
     </header>
     <div class="bg"></div>
     <main>
       <section>
         <div class="title">
           <h3>媒体库</h3>
-          <span>共{{ playlists.len ? playlists.len : 0 }}张歌单</span>
+          <span>共 {{ playlists.len ? playlists.len : 0 }} 张歌单</span>
         </div>
         <div class="playlist">
-          <div class="playlist-item" v-for="(playlist, index) in playlists.data"
-            v-if="playlists.data && playlists.data.length">
+          <div class="playlist-item" v-for="(playlist, index) in playlists.data" v-if="playlists.data && playlists.data.length">
             <div class="playlist-item-content">
               <div class="cover-wrapper">
-                <div class="cover"
-                  :style="{ backgroundColor: playlist.main_color.length > 0 ? `rgb(${playlist.main_color})` : '' }">
-                  <img draggable="false" loading="lazy" :src=playlist.cover @load="imgloaded(index)" ref="imgRef">
+                <div class="cover" :style="{ backgroundColor: playlist.main_color.length > 0 ? `rgb(${playlist.main_color})` : '' }">
+                  <img draggable="false" loading="lazy" :src="playlist.cover" @load="imgloaded(index)" ref="imgRef" />
                 </div>
                 <div class="icon"></div>
               </div>
               <div class="playlist_info">
                 <span class="playlist-name">{{ playlist.name }}</span>
-                <div class="track-count"> 共计 {{ playlist.track_count }} 首音乐</div>
+                <div class="track-count">共 {{ playlist.track_count }} 首</div>
               </div>
-              <div>
-              </div>
+              <div></div>
             </div>
           </div>
-
 
           <div class="playlist-item item-data-loading" v-else v-for="item in playlistsCount">
             <div class="playlist-item-content">
               <div class="cover-wrapper">
                 <div class="cover">
-                  <img draggable="false" loading="lazy">
+                  <img draggable="false" loading="lazy" />
                 </div>
                 <div class="icon"></div>
               </div>
               <div class="playlist_info">
                 <span class="playlist-name"></span>
-                <div class="track-count">
-                </div>
+                <div class="track-count"></div>
               </div>
-              <div>
-              </div>
+              <div></div>
             </div>
           </div>
         </div>
       </section>
     </main>
   </div>
+
+  <PlayingBar />
 </template>
 
 <script setup>
 import 'overlayscrollbars/overlayscrollbars.css';
-import {
-  OverlayScrollbars
-} from 'overlayscrollbars';
-import { ref } from 'vue'
+import { OverlayScrollbars } from 'overlayscrollbars';
+import { ref } from 'vue';
 
-let playlists = ref([])
-const imgRef = ref()
-let scrollPositionRatio = ref()
-let playlistsCount = ref(0)
+import PlayingBar from './components/PlayingBar.vue';
+let playlists = ref([]);
+const imgRef = ref();
+let scrollPositionRatio = ref();
+let playlistsCount = ref(0);
 
 async function getPlaylistsCount() {
-  const data = await fetch('http://127.0.0.1:5000/get_playlists_count')
-  const formatData = await data.json()
+  const data = await fetch('http://127.0.0.1:5000/get_playlists_count');
+  const formatData = await data.json();
   if (formatData.code !== 200) {
-    throw formatData
+    throw formatData;
   }
-  return formatData
+  return formatData;
 }
 
 (async function () {
   try {
-    const { data } = await getPlaylistsCount()
-    playlistsCount.value = data
-    initScroolBar()
+    const { data } = await getPlaylistsCount();
+    playlistsCount.value = data;
+    initScroolBar();
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-})()
+})();
 
 function initScroolBar() {
-  OverlayScrollbars(document.querySelector('.cotainer'), {
-    scrollbars: {
-      theme: 'os-theme-custom'
+  OverlayScrollbars(
+    document.querySelector('.cotainer'),
+    {
+      scrollbars: {
+        theme: 'os-theme-custom',
+        autoHide: 'leave'
+      }
+    },
+    {
+      scroll() {
+        scrollPositionRatio.value = Math.max(Math.min(1 - (156 - event.target.scrollTop) / 156, 1));
+      }
     }
-  }, {
-    scroll() {
-      scrollPositionRatio.value = Math.max(Math.min(1 - (156 - event.target.scrollTop) / 156, 1))
-    }
-  })
+  );
 }
-
 
 fetch('http://127.0.0.1:5000/get_all_playlist')
   .then((res) => {
-    return res.json()
+    return res.json();
   })
   .then((data) => {
     if (data.code == 200) {
-      playlists.value = data
+      playlists.value = data;
     }
-    return Promise.reject(data)
+    return Promise.reject(data);
   })
   .catch((errdata) => {
     console.log(errdata);
-  })
-
+  });
 
 function imgloaded(index) {
-  imgRef.value[index].style.opacity = 1
+  imgRef.value[index].style.opacity = 1;
 }
-
-
 </script>
-
 
 <style scoped>
 :global(.os-theme-custom) {
   --os-size: 10px;
-  --os-handle-bg: hsla(0, 0%, 100%, .3);
-  --os-handle-bg-hover: hsla(0, 0%, 100%, .5);
-  --os-handle-bg-active: hsla(0, 0%, 100%, .6);
+  --os-handle-bg: hsla(0, 0%, 100%, 0.3);
+  --os-handle-bg-hover: hsla(0, 0%, 100%, 0.5);
+  --os-handle-bg-active: hsla(0, 0%, 100%, 0.6);
+}
+
+:global(.os-scrollbar-visible) {
+  transition: all 0.2s ease-in;
 }
 
 .cotainer {
-  height: 100%;
+  height: calc(100% - 90px);
   user-select: none;
 }
 
@@ -151,6 +147,9 @@ header {
   text-align: right;
   z-index: 5;
   opacity: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   /* width: min(1000px, 100% - (var(--container-padding) * 2)); */
 }
 
@@ -166,7 +165,7 @@ header .outer-bg {
 }
 
 header .inner-bg {
-  background-color: rgba(0, 0, 0, .6);
+  background-color: rgba(0, 0, 0, 0.6);
   height: 100%;
 }
 
@@ -193,7 +192,7 @@ main {
   z-index: -1;
   margin-top: -64px;
   background-color: rgb(83, 83, 83);
-  background-image: linear-gradient(rgba(0, 0, 0, .6) 0, #121212 100%), var(--background-noise);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6) 0, #121212 100%), var(--background-noise);
 }
 
 main section {
@@ -223,6 +222,10 @@ main section .title span {
 }
 
 @media (max-width: 414px) {
+  :global(.os-theme-custom) {
+    --os-size: 5px;
+  }
+
   main section .title {
     display: block;
     font-size: 18px;
@@ -230,6 +233,10 @@ main section .title span {
 
   main section .title span {
     font-size: 15px;
+  }
+
+  header button {
+    font-size: 18px;
   }
 }
 
@@ -244,12 +251,14 @@ main section .playlist .playlist-item {
   background: #181818;
   border-radius: 6px;
   width: 100%;
-  transition: background-color .3s ease;
+  transition: background-color 0.3s ease;
   cursor: pointer;
 }
 
-main section .playlist .playlist-item:hover {
-  background-color: #282828;
+@media (min-width: 414px) {
+  main section .playlist .playlist-item:hover {
+    background-color: #282828;
+  }
 }
 
 main section .playlist .playlist-item .playlist-item-content .cover-wrapper {
@@ -294,7 +303,6 @@ main section .playlist .playlist-item .playlist-item-content .playlist_info .pla
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
 }
 
 main section .playlist .playlist-item .playlist-item-content .playlist_info .track-count {
@@ -314,17 +322,16 @@ main section .playlist .playlist-item .playlist-item-content .playlist_info .tra
 
 @keyframes shimmer {
   0% {
-
-    transform: translateX(-100%)
+    transform: translateX(-100%);
   }
 
   to {
-    transform: translateX(100%)
+    transform: translateX(100%);
   }
 }
 
 main section .playlist .item-data-loading:hover {
-  background-color: transparent;
+  background-color: #181818;
   cursor: inherit;
 }
 
@@ -347,9 +354,9 @@ main section .playlist .item-data-loading .cover::after,
 main section .playlist .item-data-loading .playlist-name::after,
 main section .playlist .item-data-loading .track-count::after {
   animation: shimmer 2s infinite;
-  background-image: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, .1), transparent);
+  background-image: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.1), transparent);
   bottom: 0;
-  content: "";
+  content: '';
   left: 0;
   position: absolute;
   right: 0;
@@ -364,3 +371,4 @@ main section:nth-child(2) {
   background-color: rgb(30, 228, 3);
 }
 </style>
+
