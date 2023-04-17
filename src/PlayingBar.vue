@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-0 h-[90px] w-full">
+  <div class="h-[90px] w-full">
     <footer class="h-full min-w-[620px] border-0 border-t border-solid border-[#282828] bg-[#181818]">
       <div class="flex h-full items-center justify-between px-4">
         <!-- 左侧歌曲信息模块 -->
@@ -138,7 +138,7 @@ let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
 
 onMounted(() => {
-  // initAudio('http://127.0.0.1:5000/audio');
+  initAudio('http://127.0.0.1:5000/audio');
 });
 
 function initAudio(src) {
