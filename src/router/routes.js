@@ -1,22 +1,22 @@
-import Playlists from '../pages/Playlists/Playlists.vue';
-import TrackList from '../pages/TrackList/TrackList.vue';
+import Home from '../pages/Home/Home.vue';
+import Playlist from '../pages/Playlist/Playlist.vue';
 
 const routes = [
   {
     path: '/',
     redirect: {
-      name: 'Playlists'
+      name: 'Home'
     }
   },
   {
-    path: '/playlists',
-    name: 'Playlists',
-    component: Playlists
+    path: '/home',
+    name: 'Home',
+    component: Home
   },
   {
-    path: '/tracklist/:playlist',
-    name: 'TrackList',
-    component: TrackList
+    path: '/playlist/:name',
+    name: 'Playlist',
+    component: Playlist
   }
 ];
 

@@ -15,7 +15,7 @@
         </div>
         <div class="playlist">
           <template v-if="playlists.data && playlists.data.length">
-            <div class="playlist-item" v-for="(playlist, index) in playlists.data" @click="$router.push(`/tracklist/${playlist.name}`)">
+            <div class="playlist-item" v-for="(playlist, index) in playlists.data" @click="$router.push(`/playlist/${encodeURIComponent(playlist.name)}`)">
               <div class="playlist-item-content">
                 <div class="cover-wrapper">
                   <div class="cover" :style="{ backgroundColor: playlist.main_color.length > 0 ? `rgb(${playlist.main_color})` : '' }">
@@ -120,7 +120,9 @@ function imgloaded(index) {
 
 <style scoped>
 :global(.os-theme-custom) {
-  --os-size: 10px;
+  --os-size: 16px;
+  --os-padding-axis: 2px;
+  --os-padding-perpendicular: 2px;
   --os-handle-bg: hsla(0, 0%, 100%, 0.3);
   --os-handle-bg-hover: hsla(0, 0%, 100%, 0.5);
   --os-handle-bg-active: hsla(0, 0%, 100%, 0.6);

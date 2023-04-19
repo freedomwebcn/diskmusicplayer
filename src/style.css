@@ -4,7 +4,8 @@
   --container-padding: 1rem;
   --plr: 16px;
   --column-count: 9;
-  --background-noise: url('./bg.svg')
+  --background-noise: url('./bg.svg');
+
 }
 
 html {
