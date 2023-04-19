@@ -54,9 +54,13 @@
             </div>
           </div>
         </div>
-        <div class="linearGradient absolute right-[-4.5px] z-[11] h-full w-[9px] cursor-col-resize opacity-0 hover:opacity-100" @mousedown="onMousedown" :style="{ opacity: overplay ? 1 : '' }"></div>
+        <div
+          class="linearGradient absolute right-[-4.5px] z-[11] h-full w-[9px] cursor-col-resize opacity-0 hover:opacity-100"
+          @mousedown="onMousedown"
+          :style="{ opacity: isShowOverlay ? 1 : '' }"
+        ></div>
 
-        <div class="absolute bottom-0 left-0 right-[1px] top-0 z-50 cursor-col-resize bg-transparent" v-if="overplay"></div>
+        <div class="absolute bottom-0 left-0 right-[1px] top-0 z-50 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
       </div>
       <!-- nav bar end-->
       <div class="scrollwrapper row-span-2 row-start-1">
@@ -268,7 +272,7 @@ let page = 0;
 const navBarRef = ref(null);
 const playlistRef = ref(null);
 const navScrollWrapperRef = ref(null);
-let overplay = ref(false);
+let isShowOverlay = ref(false);
 let navScrollWrapperOffsetTop = ref(0);
 
 console.log(route.params.name);
@@ -334,7 +338,7 @@ const throttledChangeWidth = throttle(changeWidth, 100, {
 
 function changeWidth(event) {
   console.log('move');
-  overplay.value = true;
+  isShowOverlay.value = true;
   const minWidth = 120;
   const maxWidth = 384;
   let newWidth = event.clientX - navBarRef.value.offsetLeft;
@@ -343,7 +347,7 @@ function changeWidth(event) {
 }
 
 function onMouseup() {
-  overplay.value = false;
+  isShowOverlay.value = false;
   document.removeEventListener('mousemove', throttledChangeWidth);
   document.removeEventListener('mouseup', onMouseup);
   console.log('抬起了');
