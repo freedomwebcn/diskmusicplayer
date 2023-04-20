@@ -57,6 +57,9 @@
 import 'overlayscrollbars/overlayscrollbars.css';
 import { OverlayScrollbars } from 'overlayscrollbars';
 import { ref } from 'vue';
+import { setLocal, getLocal } from '/src/utills/localStorage.js';
+
+console.log(setLocal, getLocal);
 
 let playlists = ref([]);
 const imgRef = ref();
@@ -105,7 +108,9 @@ fetch('http://127.0.0.1:5000/get_all_playlist')
   })
   .then((data) => {
     if (data.code == 200) {
+      setLocal('playlists', data.data);
       playlists.value = data;
+      return;
     }
     return Promise.reject(data);
   })

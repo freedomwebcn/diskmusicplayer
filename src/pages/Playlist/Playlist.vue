@@ -17,28 +17,25 @@
           </div>
           <ul class="list-none">
             <li class="px-2">
-              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline" href="/">
-                <svg class="h-6 w-6 flex-shrink-0 fill-current" role="img" height="24" width="24" viewBox="0 0 24 24">
-                  <path
-                    d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33a2 2 0 0 1 1 1.732V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z"
-                  ></path>
-                </svg>
-                <span class="Type__TypeElement-sc-goli3j-0 jqNXli ellipsis-one-line" data-encore-id="type">主页</span>
+              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
+                <span class="line-clamp-1 break-all">主页</span>
               </a>
             </li>
             <li class="px-2">
-              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline" href="/">
-                <svg class="h-6 w-6 flex-shrink-0 fill-current" role="img" height="24" width="24" viewBox="0 0 24 24">
-                  <path
-                    d="M12.5 3.247a1 1 0 0 0-1 0L4 7.577V20h4.5v-6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v6H20V7.577l-7.5-4.33zm-2-1.732a3 3 0 0 1 3 0l7.5 4.33a2 2 0 0 1 1 1.732V21a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6h-3v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.577a2 2 0 0 1 1-1.732l7.5-4.33z"
-                  ></path>
-                </svg>
-                <span class="Type__TypeElement-sc-goli3j-0 jqNXli ellipsis-one-line" data-encore-id="type"> 统计 </span>
+              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
+                <span class="line-clamp-1 break-all"> 统计 </span>
+              </a>
+            </li>
+
+            <li class="px-2">
+              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
+                <span class="line-clamp-1 break-all"> 已点赞的歌曲 </span>
               </a>
             </li>
           </ul>
 
-          <div class="relative mt-[13px] flex h-full flex-col" ref="navScrollWrapperRef" :style="{ height: `calc(100% + var(--nav-pt) - ${navScrollWrapperOffsetTop}px)` }">
+          <!-- scroll start -->
+          <div class="relative mt-[13px] flex h-full flex-col" ref="navScrollWrapperRef" :style="{ height: `${navScrollWrapperHeight}px` }">
             <div class="flex h-full flex-1 flex-col">
               <div class="relative z-10">
                 <hr class="mx-6 mt-2 h-[1px] border-none bg-[#282828]" />
@@ -46,8 +43,8 @@
               </div>
               <div class="nav-scroll-content">
                 <ul class="mt-2">
-                  <li class="flex px-6" v-for="item in 50">
-                    <span>test</span>
+                  <li class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white" v-for="item in playlists" @click="fetchData(item.name)">
+                    <span class="line-clamp-1 break-all">{{ item.name }}</span>
                   </li>
                 </ul>
               </div>
@@ -60,10 +57,11 @@
           :style="{ opacity: isShowOverlay ? 1 : '' }"
         ></div>
 
-        <div class="absolute bottom-0 left-0 right-[1px] top-0 z-50 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
+        <div class="absolute bottom-0 left-0 right-1 top-0 z-10 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
+        <!-- scroll end -->
       </div>
       <!-- nav bar end-->
-      <div class="scrollwrapper row-span-2 row-start-1">
+      <div class="scrollwrapper relative row-span-2 row-start-1 h-full overflow-y-auto" id="scrollArea">
         <!-- header start -->
         <div class="sticky top-0 z-10 h-16 w-full text-white">
           <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
@@ -124,7 +122,7 @@
           </header>
         </div>
         <!-- header end -->
-        <div class="pb-16 text-white">
+        <div class="pb-16 text-white" v-if="truckList && truckList.length">
           <section class="mt-[-64px] border-l-orange-400">
             <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
               <div class="absolute left-0 top-0 h-full w-full bg-[rgb(152_184_160)]"></div>
@@ -143,14 +141,33 @@
               </div>
 
               <div class="z-0 flex flex-1 flex-col justify-end">
-                <span class="mt-2 w-full">
-                  <h1 class="font-black text-white" style="margin: 0.08em 0px 0.12em; visibility: visible; width: 100%; font-size: 6rem">每日推荐 3</h1>
+                <span class="mt-2 w-full font-sans">
+                  <h1 class="font-black text-white" style="margin: 0.08em 0px 0.12em; visibility: visible; width: 100%; font-size: 6rem">电子音乐</h1>
                 </span>
-                <span class="text-[hsla(0,0%,100%,.7)] md:text-sm">
-                  <div class="">John Mayer、Akon、Shawn Mendes 等更多曲风</div>
-                </span>
-                <div class="mt-2 flex items-center whitespace-nowrap">
-                  <span class="text-white md:text-sm">50 首歌曲, <span class="text-[hsla(0,0%,100%,.7)]">大约 2 小时 30 分钟</span></span>
+
+                <div class="flex">
+                  <div class="grid grid-flow-col items-center gap-1 whitespace-nowrap">
+                    <figure class="h-6 w-6" title="基督山伯爵" data-testid="user-widget-avatar">
+                      <div class="h-full w-full">
+                        <img
+                          class="h-full w-full rounded-full object-cover object-center"
+                          aria-hidden="false"
+                          draggable="false"
+                          loading="eager"
+                          src="https://i.scdn.co/image/ab6775700000ee85852e236a1a64a76032ff9e7f"
+                          alt="基督山伯爵"
+                        />
+                      </div>
+                    </figure>
+                    <span class="max-w-[110px] truncate md:text-sm">基督山伯爵</span>
+                  </div>
+
+                  <div class="flex items-center whitespace-nowrap">
+                    <span class="text-white before:mx-1 before:content-['•'] md:text-sm"
+                      >50 首歌曲,
+                      <span class="text-[hsla(0,0%,100%,.7)]">大约 2 小时 30 分钟</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -203,7 +220,7 @@
                   </div>
 
                   <!-- tracklist start -->
-                  <div>
+                  <div id="contentArea">
                     <div class="row group rounded hover:bg-[hsla(0,0%,100%,.1)]" v-for="(item, index) in truckList">
                       <div class="grid h-14 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 px-4">
                         <div class="flex items-center justify-center">
@@ -221,19 +238,26 @@
                           </div>
                         </div>
                         <div class="flex items-center justify-self-start">
-                          <!--   :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(item.cover && item.cover)}`" -->
-                          <img class="mr-4 shrink-0 bg-[#282828] object-cover object-center" aria-hidden="false" draggable="false" loading="eager" alt="" width="40" height="40" />
-                          <div>
+                          <img
+                            class="mr-4 shrink-0 bg-[#282828] object-cover object-center"
+                            :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(item.cover && item.cover)}`"
+                            draggable="false"
+                            loading="eager"
+                            alt=""
+                            width="40"
+                            height="40"
+                          />
+                          <div class="font-sans">
                             <div class="line-clamp-1 break-all">{{ item.title }}</div>
                             <span class="line-clamp-1 break-all text-sm text-[#b3b3b3]" v-for="singer in item.art">{{ singer }}</span>
                           </div>
                         </div>
-                        <div class="flex items-center justify-self-start text-[#b3b3b3]">
+                        <div class="flex items-center justify-self-start font-sans text-[#b3b3b3]">
                           <span class="line-clamp-1 break-all"> {{ item.album }} </span>
                         </div>
 
                         <div class="flex items-center justify-self-end text-[#b3b3b3]">
-                          <div class="mr-8">3:28</div>
+                          <div class="mr-8">{{ formatSongsTime(item.durtion) }}</div>
                         </div>
                       </div>
                     </div>
@@ -244,20 +268,34 @@
             </div>
           </section>
         </div>
+
+        <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-else>
+          <div class="HKamyJi9H31s99erfVyG">
+            <svg xmlns="http://www.w3.org/2000/svg" height="12px" width="56px" x="0px" y="0px" viewBox="0 0 1 100" xml:space="preserve" data-testid="loadingIcon">
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="-140" cy="50" r="32"></circle>
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="0" cy="50" r="32"></circle>
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="140" cy="50" r="32"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <div class="absolute bottom-0 left-1 right-0 top-0 z-10 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { watch, ref, onMounted, reactive } from 'vue';
+import { watch, ref, onMounted, reactive, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { OverlayScrollbars } from 'overlayscrollbars';
-import { throttle } from 'lodash';
+import { throttle, debounce } from 'lodash';
+import { setLocal, getLocal } from '/src/utills/localStorage.js';
 
 const route = useRoute();
 const playlistName = route.params.name;
+const playlists = ref(getLocal('playlists'));
 const titleRef = ref(null);
 let rectY = ref(false);
 let titleRefStyObj = reactive({
@@ -273,16 +311,26 @@ const navBarRef = ref(null);
 const playlistRef = ref(null);
 const navScrollWrapperRef = ref(null);
 let isShowOverlay = ref(false);
-let navScrollWrapperOffsetTop = ref(0);
+let navScrollWrapperHeight = ref(0);
 
 console.log(route.params.name);
 
 onMounted(() => {
   initScrollBar('.scrollwrapper');
   initNavScrollBar('.nav-scroll-content');
-  console.log(navScrollWrapperRef.value.offsetTop);
-  navScrollWrapperOffsetTop.value = navScrollWrapperRef.value.offsetTop;
+  resetNavScrollWrapperHeight();
 });
+
+function resetNavScrollWrapperHeight() {
+  const navBarHeight = navBarRef.value.getBoundingClientRect().height;
+  const navScrollWrapperTop = navScrollWrapperRef.value.offsetTop;
+  navScrollWrapperHeight.value = navBarHeight - navScrollWrapperTop;
+  console.log(6);
+}
+
+const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
+
+window.onresize = debounceResetNavScrollWrapperHeight;
 
 function initScrollBar(el) {
   OverlayScrollbars(
@@ -309,14 +357,18 @@ function initNavScrollBar(el) {
     }
   });
 }
+
 function fetchData(playlistName) {
+  truckList.value && (truckList.value.length = 0);
   fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`)
     .then((res) => {
       return res.json();
     })
     .then((data) => {
       if (data.code == 200) {
-        truckList.value = data.data;
+        setTimeout(() => {
+          truckList.value = data.data;
+        }, 300);
         console.log(data);
         return;
       }
@@ -352,7 +404,13 @@ function onMouseup() {
   document.removeEventListener('mouseup', onMouseup);
   console.log('抬起了');
 }
-
+function formatSongsTime(duration) {
+  let minute = Math.floor(duration / 60);
+  let second = Math.floor(duration % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${minute}:${second}`;
+}
 // fetchData(playlistName);
 </script>
 
@@ -377,4 +435,54 @@ function onMouseup() {
 .tracklist_liner_gradient {
   background-image: linear-gradient(rgba(0, 0, 0, 0.6) 0, #121212 100%), var(--background-noise);
 } */
+
+@keyframes loading-icon {
+  0% {
+    -webkit-animation-timing-function: cubic-bezier(1, 0, 0.7, 1);
+    animation-timing-function: cubic-bezier(1, 0, 0.7, 1);
+    opacity: 0.5;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+
+  40% {
+    -webkit-animation-timing-function: cubic-bezier(0.3, 0, 0, 1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0, 1);
+    opacity: 0.75;
+    -webkit-transform: scale(1.3);
+    transform: scale(1.3);
+  }
+
+  72.5% {
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    opacity: 0.5;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.5;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+
+.BuzoTjBZd1UqCn6DmFJr {
+  fill: #fff;
+  -webkit-animation: loading-icon 1.32s linear infinite;
+  animation: loading-icon 1.32s linear infinite;
+  -webkit-transform-origin: center;
+  transform-origin: center;
+}
+
+.BuzoTjBZd1UqCn6DmFJr:nth-of-type(2) {
+  -webkit-animation-delay: 0.1s;
+  animation-delay: 0.1s;
+}
+
+.BuzoTjBZd1UqCn6DmFJr:nth-of-type(3) {
+  -webkit-animation-delay: 0.2s;
+  animation-delay: 0.2s;
+}
 </style>

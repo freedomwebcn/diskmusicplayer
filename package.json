@@ -9,11 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "clusterize.js": "^1.0.0",
     "lodash": "^4.17.21",
     "overlayscrollbars": "^2.1.1",
     "overlayscrollbars-vue": "^0.5.1",
     "vue": "^3.2.47",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "vue-virtual-scroller": "^2.0.0-beta.8"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.1.0",
