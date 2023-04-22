@@ -62,11 +62,11 @@
       </div>
       <!-- nav bar end-->
 
-      <div class="scrollwrapper">
-        <RecycleScroller class="scroller" :items="truckList && truckList" :item-size="56" key-field="title">
+      <div class="scrollwrapper" ref="scrollwrapperRef">
+        <RecycleScroller class="scroller" :items="truckList && truckList" :item-size="56" key-field="id">
           <template #before>
             <!-- header start -->
-            <div class="fixed top-0 z-[1] h-16 text-white" :style="{ width: `calc(100% - ${navBarWidth})` }">
+            <div class="fixed z-[1] h-16 w-full text-white" :style="{ width: scrollwrapperWidth }">
               <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
                 <div
                   class="absolute bottom-0 left-0 right-0 top-0 z-[-1] overflow-hidden bg-[#121212]"
@@ -124,6 +124,7 @@
                 </button>
               </header>
             </div>
+
             <!-- header end -->
             <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
               <div class="absolute left-0 top-0 h-full w-full bg-[rgb(152_184_160)]"></div>
@@ -190,8 +191,8 @@
                 </div>
               </div>
             </div>
-            <div class="fixed h-[1000px] px-8">
-              <div class="sticky top-16 z-[2] mb-4 ml-[-32px] mr-[-32px] h-9 px-8" ref="titleRef" :style="rectY && titleRefStyObj">
+            <div class="z-[2] mb-4 px-8" :style="rectY && style">
+              <div class="ml-[-32px] mr-[-32px] h-9 px-8" ref="titleRef">
                 <div
                   class="grid h-9 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 border-0 border-b border-solid px-4 text-[#b3b3b3]"
                   :style="{ 'border-color': rectY ? 'transparent' : 'hsla(0,0%,100%,.1)' }"
@@ -219,15 +220,17 @@
                 </div>
               </div>
             </div>
+
+            <div class="mb-4 h-9 px-8" v-if="rectY"></div>
           </template>
 
-          <template #default="{ item, index, active }">
+          <template #default="{ item, active }">
             <div class="px-8">
               <div class="row group rounded hover:bg-[hsla(0,0%,100%,.1)]">
                 <div class="grid h-14 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 px-4">
                   <div class="flex items-center justify-center">
                     <div class="relative h-4 min-h-[16px] w-4 min-w-[16px] text-[#b3b3b3]">
-                      <span class="absolute right-[0.25em] top-[-4px] group-hover:hidden">{{ index + 1 }}</span>
+                      <span class="absolute right-[0.25em] top-[-4px] group-hover:hidden">{{ item.id }}</span>
                       <button
                         class="flex h-full w-full items-center justify-center border-0 bg-transparent text-white opacity-0 group-hover:opacity-100"
                         aria-label="播放 張學友 的 我真的受傷了"
@@ -267,6 +270,9 @@
 
             <div class="absolute bottom-0 left-1 right-0 top-0 z-10 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
           </template>
+          <template #after>
+            <div class="h-28"></div>
+          </template>
         </RecycleScroller>
       </div>
     </div>
@@ -274,7 +280,7 @@
 </template>
 
 <script setup>
-import { watch, ref, onMounted, reactive, nextTick } from 'vue';
+import { watch, ref, onMounted, reactive, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { OverlayScrollbars } from 'overlayscrollbars';
@@ -286,12 +292,9 @@ const playlistName = route.params.name;
 const playlists = ref(getLocal('playlists'));
 const titleRef = ref(null);
 let rectY = ref(false);
-let titleRefStyObj = reactive({
-  background: '#181818',
-  'border-bottom': `1px solidhsla(0,0%,100%,.1)`,
-  'box-shadow': `0 -1px 0 0 #181818`,
-  'border-bottom': `1px solid hsla(0,0%,100%,.1)`
-});
+const scrollwrapperRef = ref(null);
+let scrollwrapperWidth = ref(0);
+
 let scrollPositionRatio = ref(0);
 let truckList = ref([]);
 let page = 0;
@@ -305,20 +308,31 @@ console.log(route.params.name);
 
 onMounted(() => {
   initScrollBar('.scrollwrapper');
-  // initNavScrollBar('.nav-scroll-content');
+  scrollwrapperWidth.value = scrollwrapperRef.value.offsetWidth + 'px';
+  console.log(scrollwrapperWidth.value);
+
+  initNavScrollBar('.nav-scroll-content');
   resetNavScrollWrapperHeight();
+});
+
+const style = computed(() => {
+  return {
+    background: '#181818',
+    'border-bottom': `1px solidhsla(0,0%,100%,.1)`,
+    'box-shadow': `0 -1px 0 0 #181818`,
+    'border-bottom': `1px solid hsla(0,0%,100%,.1)`,
+    position: 'fixed',
+    top: '64px',
+    width: scrollwrapperWidth.value
+  };
 });
 
 function resetNavScrollWrapperHeight() {
   const navBarHeight = navBarRef.value.getBoundingClientRect().height;
-
   const navScrollWrapperTop = navScrollWrapperRef.value.offsetTop;
   navScrollWrapperHeight.value = navBarHeight - navScrollWrapperTop;
-  console.log(6);
 }
-
 const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
-
 window.onresize = debounceResetNavScrollWrapperHeight;
 
 function initScrollBar(el) {
@@ -339,7 +353,7 @@ function initScrollBar(el) {
       scroll() {
         scrollPositionRatio.value = Math.max(Math.min(1 - (300 - event.target.scrollTop) / 300, 1));
         console.log(event.target.scrollTop);
-        // rectY.value = event.target.scrollTop = 400;
+        rectY.value = event.target.scrollTop >= 356;
       }
     }
   );
@@ -370,6 +384,7 @@ function initNavScrollBar(el) {
 }
 
 function fetchData(playlistName) {
+  truckList && (truckList.value.length = 0);
   fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`)
     .then((res) => {
       return res.json();
@@ -388,7 +403,7 @@ function fetchData(playlistName) {
       console.log(errdata);
     });
 }
-fetchData(playlistName);
+// fetchData(playlistName);
 function onMousedown() {
   document.addEventListener('mousemove', throttledChangeWidth);
   document.addEventListener('mouseup', onMouseup);
@@ -408,6 +423,8 @@ function changeWidth(event) {
   newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
   navBarWidth.value = newWidth + 'px';
   navBarRef.value.style.width = newWidth + 'px';
+
+  scrollwrapperWidth.value = scrollwrapperRef.value.offsetWidth + 'px';
 }
 
 function onMouseup() {
