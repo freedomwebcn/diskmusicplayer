@@ -43,7 +43,12 @@
               </div>
               <div class="nav-scroll-content">
                 <ul class="mt-2">
-                  <li class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white" v-for="item in playlists" @click="fetchData(item.name)">
+                  <li
+                    class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
+                    v-for="(item, index) in playlists"
+                    @click="fetchData(item.name, index)"
+                    :style="{ color: selectedPlaylistIndex == index ? '#fff' : '' }"
+                  >
                     <span class="line-clamp-1 break-all">{{ item.name }}</span>
                   </li>
                 </ul>
@@ -57,94 +62,90 @@
           :style="{ opacity: isShowOverlay ? 1 : '' }"
         ></div>
 
-        <div class="absolute bottom-0 left-0 right-1 top-0 z-10 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
+        <div class="absolute bottom-0 left-0 right-1 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
         <!-- scroll end -->
       </div>
       <!-- nav bar end-->
-
-      <div class="scrollwrapper" ref="scrollwrapperRef">
-        <RecycleScroller class="scroller" :items="truckList && truckList" :item-size="56" key-field="id">
-          <template #before>
-            <!-- header start -->
-            <div class="fixed z-[1] h-16 w-full text-white" :style="{ width: scrollwrapperWidth }">
-              <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
-                <div
-                  class="absolute bottom-0 left-0 right-0 top-0 z-[-1] overflow-hidden bg-[#121212]"
-                  :style="{
-                    opacity: scrollPositionRatio,
-                    backgroundColor: 'rgb(152,184,160)'
-                  }"
-                >
-                  <div class="h-full bg-[rgba(0,0,0,.6)]"></div>
-                </div>
-                <div class="flex gap-4 whitespace-nowrap">
-                  <button aria-label="返回" class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-[rgba(0,0,0,.7)] text-white">
-                    <svg class="fill-current" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon">
-                      <path d="M11.03.47a.75.75 0 0 1 0 1.06L4.56 8l6.47 6.47a.75.75 0 1 1-1.06 1.06L2.44 8 9.97.47a.75.75 0 0 1 1.06 0z"></path>
-                    </svg>
-                  </button>
-                  <button class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-[rgba(0,0,0,.7)] text-white" aria-label="前进" aria-expanded="false" disabled="">
-                    <svg class="fill-current" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon">
-                      <path d="M4.97.47a.75.75 0 0 0 0 1.06L11.44 8l-6.47 6.47a.75.75 0 1 0 1.06 1.06L13.56 8 6.03.47a.75.75 0 0 0-1.06 0z"></path>
-                    </svg>
-                  </button>
-                </div>
-
-                <div data-testid="topbar-content-wrapper" class="flex-grow">
-                  <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: rectY ? 1 : 0 }">
-                    <div class="">
-                      <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
-                        <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
-                          <span aria-hidden="true" class="">
-                            <svg role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24">
-                              <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
-                            </svg>
-                          </span>
-                        </span>
-                      </button>
-                    </div>
-                    <span class="" draggable="true" data-encore-id="type">Hot country</span>
-                  </div>
-                </div>
-
-                <button class="flex h-8 cursor-pointer items-center justify-center gap-2 rounded-[23px] border-0 bg-[rgba(0,0,0,.7)] px-0.5 py-0.5 text-white">
-                  <figure class="h-7 w-7" title="基督山伯爵" data-testid="user-widget-avatar" style="width: 28px; height: 28px">
-                    <div class="h-full w-full">
-                      <img
-                        class="h-full w-full rounded-full object-cover object-center"
-                        aria-hidden="false"
-                        draggable="false"
-                        loading="eager"
-                        src="https://i.scdn.co/image/ab6775700000ee85852e236a1a64a76032ff9e7f"
-                        alt="基督山伯爵"
-                      />
-                    </div>
-                  </figure>
-                  <span class="mr-[6px] max-w-[110px] truncate md:text-sm">基督山伯爵</span>
-                </button>
-              </header>
+      <!-- main View start-->
+      <div class="scrollwrapper relative row-span-2" ref="scrollwrapperRef">
+        <!-- header start -->
+        <div class="fixed z-[1] h-16 w-full text-white" :style="{ width: scrollwrapperWidth }">
+          <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
+            <div
+              class="absolute bottom-0 left-0 right-0 top-0 z-[-1] overflow-hidden bg-[#121212]"
+              :style="{
+                opacity: scrollPositionRatio,
+                backgroundColor: `rgb(${bgStyle})`
+              }"
+            >
+              <div class="h-full bg-[rgba(0,0,0,.6)]"></div>
+            </div>
+            <div class="flex gap-4 whitespace-nowrap">
+              <button aria-label="返回" class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-[rgba(0,0,0,.7)] text-white">
+                <svg class="fill-current" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon">
+                  <path d="M11.03.47a.75.75 0 0 1 0 1.06L4.56 8l6.47 6.47a.75.75 0 1 1-1.06 1.06L2.44 8 9.97.47a.75.75 0 0 1 1.06 0z"></path>
+                </svg>
+              </button>
+              <button class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-[rgba(0,0,0,.7)] text-white" aria-label="前进" aria-expanded="false" disabled="">
+                <svg class="fill-current" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon">
+                  <path d="M4.97.47a.75.75 0 0 0 0 1.06L11.44 8l-6.47 6.47a.75.75 0 1 0 1.06 1.06L13.56 8 6.03.47a.75.75 0 0 0-1.06 0z"></path>
+                </svg>
+              </button>
             </div>
 
-            <!-- header end -->
+            <div data-testid="topbar-content-wrapper" class="flex-grow">
+              <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: rectY ? 1 : 0 }">
+                <div class="">
+                  <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
+                    <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
+                      <span aria-hidden="true" class="">
+                        <svg role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24">
+                          <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+                <span class="" draggable="true" data-encore-id="type">Hot country</span>
+              </div>
+            </div>
+
+            <button class="flex h-8 cursor-pointer items-center justify-center gap-2 rounded-[23px] border-0 bg-[rgba(0,0,0,.7)] px-0.5 py-0.5 text-white">
+              <figure class="h-7 w-7" title="基督山伯爵" data-testid="user-widget-avatar" style="width: 28px; height: 28px">
+                <div class="h-full w-full">
+                  <img
+                    class="h-full w-full rounded-full object-cover object-center"
+                    aria-hidden="false"
+                    draggable="false"
+                    loading="eager"
+                    src="https://i.scdn.co/image/ab6775700000ee85852e236a1a64a76032ff9e7f"
+                    alt="基督山伯爵"
+                  />
+                </div>
+              </figure>
+              <span class="mr-[6px] max-w-[110px] truncate md:text-sm">基督山伯爵</span>
+            </button>
+          </header>
+        </div>
+        <!-- header end -->
+        <RecycleScroller class="scroller" :items="truckList && truckList" :item-size="56" key-field="id" v-show="truckList.length">
+          <template #before>
             <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
-              <div class="absolute left-0 top-0 h-full w-full bg-[rgb(152_184_160)]"></div>
+              <div class="absolute left-0 top-0 h-full w-full" :style="{ background: `rgb(${bgStyle})` }"></div>
               <div class="absolute left-0 top-0 h-full w-full bg-[linear-gradient(transparent_0,_rgba(0,_0,_0,_0.5)_100%),var(--background-noise)]"></div>
               <div class="mr-6 flex h-[192px] w-[192px] min-w-[192px] self-end xl:h-[232px] xl:w-[232px] xl:min-w-[232px]">
                 <div class="relative flex h-[inherit]">
                   <div class="h-full w-full" draggable="false">
-                    <img
-                      class="h-full w-full object-cover object-center"
-                      draggable="false"
-                      loading="eager"
-                      src="https://dailymix-images.scdn.co/v2/img/ab6761610000e5ebe926dd683e1700a6d65bd835/3/zh-Hans/default"
-                    />
+                    <img class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].cover" />
                   </div>
                 </div>
               </div>
 
               <div class="z-0 flex flex-1 flex-col justify-end">
                 <span class="mt-2 w-full font-sans">
-                  <h1 class="font-black text-white" style="margin: 0.08em 0px 0.12em; visibility: visible; width: 100%; font-size: 6rem">电子音乐</h1>
+                  <h1 class="font-black text-white" style="margin: 0.08em 0px 0.12em; visibility: visible; width: 100%; font-size: 6rem">
+                    {{ playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].name }}
+                  </h1>
                 </span>
 
                 <div class="flex">
@@ -174,8 +175,8 @@
               </div>
             </div>
             <div class="relative w-full">
-              <div class="absolute z-[-1] h-[232px] w-full bg-[rgb(152_184_160)] bg-[linear-gradient(rgba(0,_0,_0,_0.6)_0,_#121212_100%),_var(--background-noise)]"></div>
-              <div class="px-8 py-6">
+              <div class="absolute z-[-1] h-[232px] w-full bg-[linear-gradient(rgba(0,_0,_0,_0.6)_0,_#121212_100%),_var(--background-noise)]" :style="{ backgroundColor: `rgb(${bgStyle})` }"></div>
+              <div class="px-8 py-6" ref="playBtnRef">
                 <div class="flex w-full items-center">
                   <div class="mr-8 shrink-0">
                     <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
@@ -226,20 +227,43 @@
 
           <template #default="{ item, active }">
             <div class="px-8">
-              <div class="row group rounded hover:bg-[hsla(0,0%,100%,.1)]">
+              <div class="row group rounded" @dblclick="play(item)">
                 <div class="grid h-14 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 px-4">
                   <div class="flex items-center justify-center">
                     <div class="relative h-4 min-h-[16px] w-4 min-w-[16px] text-[#b3b3b3]">
-                      <span class="absolute right-[0.25em] top-[-4px] group-hover:hidden">{{ item.id }}</span>
+                      <span
+                        class="absolute right-[0.25em] top-[-4px] group-hover:hidden"
+                        :style="{
+                          color: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? '#1ed760' : '',
+                          display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'none' : ''
+                        }"
+                      >
+                        {{ item.id }}</span
+                      >
                       <button
                         class="flex h-full w-full items-center justify-center border-0 bg-transparent text-white opacity-0 group-hover:opacity-100"
                         aria-label="播放 張學友 的 我真的受傷了"
                         tabindex="-1"
+                        :style="{
+                          display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'none' : ''
+                        }"
                       >
+                        <!--  -->
                         <svg class="fill-current" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24">
                           <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
                         </svg>
                       </button>
+                      <!--  -->
+                      <div class="relative h-4 w-4" :style="{ display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'block' : 'none' }">
+                        <img src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" />
+                        <button class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停">
+                          <svg class="h-4 w-4 fill-current" role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24" data-encore-id="icon">
+                            <path
+                              d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"
+                            ></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div class="flex items-center justify-self-start">
@@ -251,9 +275,13 @@
                       alt=""
                       width="40"
                       height="40"
+                      v-if="item.cover"
                     />
                     <div class="font-sans">
-                      <div class="line-clamp-1 break-all text-white">{{ item.title }}</div>
+                      <!--  -->
+                      <div class="line-clamp-1 break-all text-white" :style="{ color: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? '#1ed760' : '' }">
+                        {{ item.title }}
+                      </div>
                       <span class="line-clamp-1 break-all text-sm text-[#b3b3b3]" v-for="singer in item.art">{{ singer }}</span>
                     </div>
                   </div>
@@ -267,28 +295,38 @@
                 </div>
               </div>
             </div>
-
-            <div class="absolute bottom-0 left-1 right-0 top-0 z-10 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
           </template>
           <template #after>
             <div class="h-28"></div>
           </template>
         </RecycleScroller>
+
+        <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
+          <div class="HKamyJi9H31s99erfVyG">
+            <svg xmlns="http://www.w3.org/2000/svg" height="12px" width="56px" x="0px" y="0px" viewBox="0 0 1 100" xml:space="preserve" data-testid="loadingIcon">
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="-140" cy="50" r="32"></circle>
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="0" cy="50" r="32"></circle>
+              <circle class="BuzoTjBZd1UqCn6DmFJr" cx="140" cy="50" r="32"></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-1 right-0 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
       </div>
+      <!-- main View  end-->
     </div>
   </div>
 </template>
 
 <script setup>
-import { watch, ref, onMounted, reactive, nextTick, computed } from 'vue';
+import { watch, watchEffect, ref, onMounted, reactive, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import 'overlayscrollbars/overlayscrollbars.css';
-import { OverlayScrollbars } from 'overlayscrollbars';
 import { throttle, debounce } from 'lodash';
 import { setLocal, getLocal } from '/src/utills/localStorage.js';
+import { bus } from '/src/utills/eventbus.js';
+import { initMainViewScrollBar, initNavScrollBar } from './initScrollbar.js';
 
-const route = useRoute();
-const playlistName = route.params.name;
+console.log(initMainViewScrollBar);
+
 const playlists = ref(getLocal('playlists'));
 const titleRef = ref(null);
 let rectY = ref(false);
@@ -303,15 +341,35 @@ const playlistRef = ref(null);
 const navScrollWrapperRef = ref(null);
 let isShowOverlay = ref(false);
 let navScrollWrapperHeight = ref(0);
+let playBtnRef = ref(null);
 
-console.log(route.params.name);
+let checkPlaylistName = ref('');
+let currentPlayInfo = reactive({
+  playlistName: '',
+  file: ''
+});
+
+function play(currentPlayItem) {
+  currentPlayInfo.playlistName = checkPlaylistName.value;
+  currentPlayInfo.file = currentPlayItem.file;
+  // 歌曲项中的数据不包括歌曲所属的歌单名，这里手动加进去，因为播放接口需要歌单名
+  currentPlayItem['playlistName'] = currentPlayInfo.playlistName;
+  // // 触发PlayingBar组件中的初始化音频方法
+  bus.emit('initAudio', currentPlayItem);
+}
+
+const playBtnTop = ref(0);
+
+initNavScrollBar('.nav-scroll-content'); //初始化nav滚动条
+const { instance, mainViewScrollTop } = initMainViewScrollBar('.scrollwrapper', '.scroller'); // 初始化main view滚动条
+watch(mainViewScrollTop, (newvalue) => {
+  scrollPositionRatio.value = Math.max(Math.min(1 - (300 - newvalue) / 300, 1));
+  rectY.value = newvalue >= playBtnTop.value;
+  // console.log('watch');
+});
 
 onMounted(() => {
-  initScrollBar('.scrollwrapper');
   scrollwrapperWidth.value = scrollwrapperRef.value.offsetWidth + 'px';
-  console.log(scrollwrapperWidth.value);
-
-  initNavScrollBar('.nav-scroll-content');
   resetNavScrollWrapperHeight();
 });
 
@@ -327,6 +385,13 @@ const style = computed(() => {
   };
 });
 
+const bgStyle = computed(() => {
+  if (playlists.value[selectedPlaylistIndex.value]) {
+    // 如果颜色不存在 则设置为默认值 0 0 0
+    return playlists.value[selectedPlaylistIndex.value].main_color ? playlists.value[selectedPlaylistIndex.value].main_color : [0, 0, 0];
+  }
+});
+
 function resetNavScrollWrapperHeight() {
   const navBarHeight = navBarRef.value.getBoundingClientRect().height;
   const navScrollWrapperTop = navScrollWrapperRef.value.offsetTop;
@@ -335,64 +400,37 @@ function resetNavScrollWrapperHeight() {
 const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
 window.onresize = debounceResetNavScrollWrapperHeight;
 
-function initScrollBar(el) {
-  OverlayScrollbars(
-    {
-      target: document.querySelector(el),
-      elements: {
-        viewport: document.querySelector('.scroller')
-      }
-    },
-    {
-      scrollbars: {
-        theme: 'os-theme-custom'
-        // autoHide: 'leave'
-      }
-    },
-    {
-      scroll() {
-        scrollPositionRatio.value = Math.max(Math.min(1 - (300 - event.target.scrollTop) / 300, 1));
-        console.log(event.target.scrollTop);
-        rectY.value = event.target.scrollTop >= 356;
-      }
-    }
-  );
+let selectedPlaylistIndex = ref();
+function fetchData(playlistName, index) {
+  selectedPlaylistIndex.value = index;
+  if (instance) {
+    const { viewport } = instance.value.elements();
+    viewport.scrollTo({ top: 0 });
+  }
 
-  // OverlayScrollbars(
-  //   document.querySelector(el),
-  //   {
-  //     scrollbars: {
-  //       theme: 'os-theme-custom',
-  //       autoHide: 'leave'
-  //     }
-  //   },
-  //   {
-  //     scroll() {
-  //       scrollPositionRatio.value = Math.max(Math.min(1 - (300 - event.target.scrollTop) / 300, 1));
-  //       rectY.value = titleRef.value.getBoundingClientRect().y == 64;
-  //     }
-  //   }
-  // );
-}
-function initNavScrollBar(el) {
-  OverlayScrollbars(document.querySelector(el), {
-    scrollbars: {
-      autoHide: 'leave',
-      theme: 'os-theme-custom'
-    }
-  });
-}
-
-function fetchData(playlistName) {
-  truckList && (truckList.value.length = 0);
+  checkPlaylistName.value = playlistName;
+  truckList.value.length = 0;
+  if (getLocal(playlistName)) {
+    setTimeout(() => {
+      truckList.value = getLocal(playlistName);
+      nextTick(() => {
+        playBtnTop.value = playBtnRef.value.getBoundingClientRect().top;
+      });
+    }, 300);
+    return;
+  }
   fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`)
     .then((res) => {
       return res.json();
     })
     .then((data) => {
       if (data.code == 200) {
+        truckList.value = data.data;
+        nextTick(() => {
+          playBtnTop.value = playBtnRef.value.getBoundingClientRect().top;
+        });
         setTimeout(() => {
-          truckList.value = data.data;
+          setLocal(playlistName, data.data);
         }, 300);
         console.log(data);
         return;
@@ -403,7 +441,7 @@ function fetchData(playlistName) {
       console.log(errdata);
     });
 }
-// fetchData(playlistName);
+// fetchData('万青乐队');
 function onMousedown() {
   document.addEventListener('mousemove', throttledChangeWidth);
   document.addEventListener('mouseup', onMouseup);
@@ -455,7 +493,7 @@ function formatSongsTime(duration) {
   overflow-x: hidden;
 }
 .os-scrollbar-vertical {
-  z-index: 99;
+  z-index: 10;
 }
 
 .linearGradient {
@@ -472,51 +510,43 @@ function formatSongsTime(duration) {
 
 @keyframes loading-icon {
   0% {
-    -webkit-animation-timing-function: cubic-bezier(1, 0, 0.7, 1);
     animation-timing-function: cubic-bezier(1, 0, 0.7, 1);
     opacity: 0.5;
-    -webkit-transform: scale(1);
     transform: scale(1);
   }
 
   40% {
-    -webkit-animation-timing-function: cubic-bezier(0.3, 0, 0, 1);
     animation-timing-function: cubic-bezier(0.3, 0, 0, 1);
     opacity: 0.75;
-    -webkit-transform: scale(1.3);
     transform: scale(1.3);
   }
 
   72.5% {
-    -webkit-animation-timing-function: linear;
     animation-timing-function: linear;
     opacity: 0.5;
-    -webkit-transform: scale(1);
     transform: scale(1);
   }
 
   to {
     opacity: 0.5;
-    -webkit-transform: scale(1);
     transform: scale(1);
   }
 }
 
 .BuzoTjBZd1UqCn6DmFJr {
   fill: #fff;
-  -webkit-animation: loading-icon 1.32s linear infinite;
   animation: loading-icon 1.32s linear infinite;
-  -webkit-transform-origin: center;
   transform-origin: center;
 }
 
 .BuzoTjBZd1UqCn6DmFJr:nth-of-type(2) {
-  -webkit-animation-delay: 0.1s;
   animation-delay: 0.1s;
 }
 
 .BuzoTjBZd1UqCn6DmFJr:nth-of-type(3) {
-  -webkit-animation-delay: 0.2s;
   animation-delay: 0.2s;
+}
+.hover .row {
+  background: hsla(0, 0%, 100%, 0.1);
 }
 </style>

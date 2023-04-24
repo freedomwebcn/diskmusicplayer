@@ -11,7 +11,13 @@
                   <path d="M6 3h15v15.167a3.5 3.5 0 1 1-3.5-3.5H19V5H8v13.167a3.5 3.5 0 1 1-3.5-3.5H6V3zm0 13.667H4.5a1.5 1.5 0 1 0 1.5 1.5v-1.5zm13 0h-1.5a1.5 1.5 0 1 0 1.5 1.5v-1.5z"></path>
                 </svg>
               </div>
-              <img class="absolute h-full w-full" draggable="false" loading="eager" src="https://i.scdn.co/image/ab67616d00004851b586e6253ee8b6db4dafc0ac" />
+              <img
+                class="absolute h-full w-full"
+                draggable="false"
+                loading="eager"
+                :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(currentPlayTrackInfo.cover)}`"
+                v-if="currentPlayTrackInfo.cover"
+              />
             </div>
             <div class="mx-3.5 grid grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center gap-x-2">
               <div class="col-span-2 w-full justify-self-start text-[#fff]">
@@ -19,7 +25,7 @@
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-[#fff] min-[768px]:text-sm">
-                        <span> track name</span>
+                        <span> {{ currentPlayTrackInfo.title }}</span>
                       </div>
                     </div>
                   </div>
@@ -31,7 +37,7 @@
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-xs">
-                        <span> track name </span>
+                        <span v-for="art in currentPlayTrackInfo.art"> {{ art }} </span>
                       </div>
                     </div>
                   </div>
@@ -126,7 +132,8 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, reactive } from 'vue';
+import { bus } from '/src/utills/eventbus.js';
 
 let audio = null;
 let progressBarTransform = ref('0%');
@@ -136,23 +143,37 @@ let duration = ref('0:00');
 let currentTime = ref('0:00');
 let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
+let currentPlayTrackInfo = {};
 
+const { log } = console;
 onMounted(() => {
   // initAudio('http://127.0.0.1:5000/audio');
+  bus.on('initAudio', initAudio);
+});
+onBeforeUnmount(() => {
+  bus.off('initAudio');
 });
 
-function initAudio(src) {
+function initAudio(playInfo) {
+  currentPlayTrackInfo = playInfo;
+  console.log(playInfo);
+  const src = `http://127.0.0.1:5000/audio/${playInfo.playlistName}/${playInfo.file}`;
+  log(src);
+  audio ? log('音频对象已存在，只需要更新音频地址') : log('正在初始化音频对象');
   if (!audio) {
-    console.log('初始化音频对象');
     audio = new Audio(src);
     audio.addEventListener('play', play);
     audio.addEventListener('pause', paused);
     audio.addEventListener('loadedmetadata', loadedmetadata);
+    audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('error', errorHandler);
     audio.volume = 0.1;
   }
-  console.log('音频对象已存在，只需要更新音频地址');
   audio.src = src;
+}
+function oncanplay() {
+  log('可以播放了');
+  audio.play();
 }
 
 // 切换播放状态
@@ -175,12 +196,13 @@ function paused() {
 
 //音频发生错误时
 function errorHandler() {
-  alert('音频出错，请刷新重试！');
+  audio.pause();
+  log('音频出错，请刷新重试！');
 }
 
 // 更新播放进度
 function updatePlayProgress() {
-  console.log('playing...');
+  // log('playing...');
   const progressPercentage = audio.currentTime / audio.duration;
   progressBarTransform.value = `${progressPercentage * 100}%`;
   updateCurrentTime(audio.currentTime);
@@ -250,6 +272,7 @@ const stopAudio = () => {
     audio.removeEventListener('play', play);
     audio.removeEventListener('pause', paused);
     audio.removeEventListener('loadedmetadata', loadedmetadata);
+    audio.removeEventListener('canplay', oncanplay);
     audio.removeEventListener('error', errorHandler);
     audio.src = '';
     audio.load();
