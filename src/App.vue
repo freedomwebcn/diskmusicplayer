@@ -1,7 +1,7 @@
 <template>
   <router-view v-slot="{ Component }">
     <KeepAlive :max="5">
-      <component :is="Component" :key="$route.fullPath" />
+      <component :is="Component"  />
     </KeepAlive>
   </router-view>
   <PlayingBar />

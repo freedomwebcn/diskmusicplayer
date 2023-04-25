@@ -1,5 +1,5 @@
 <template>
-  <div class="playlist | h-[calc(100%-91px)]" ref="playlistRef">
+  <div class="playlist | h-[calc(100%-91px)]">
     <div class="relative grid h-full w-full grid-cols-[auto_1fr] grid-rows-[auto_1fr] overflow-hidden">
       <!-- nav bar Start-->
       <div class="relative row-span-2 row-start-1 flex min-h-0 w-[calc(var(--nav-w)+9px)] flex-col bg-[#000] text-white" ref="navBarRef">
@@ -43,17 +43,18 @@
               </div>
               <div class="nav-scroll-content">
                 <ul class="mt-2">
-                    <!-- @click="fetchData(item.name, index)" -->
+                  <!-- @click="fetchData(item.name, index)" -->
 
                   <li
                     class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
                     v-for="(item, index) in playlists"
                     :key="index"
-                    @click='$router.push(`/playlist/${item.name}`)'
-                    :style="{ color: selectedPlaylistIndex == index ? '#fff' : '' }"
+                    @click="$router.push(`/playlist/${encodeURIComponent(item.name)}`)"
+                    :style="{ color: store.currentPlaylistInfo.name == item.name ? '#fff' : '' }"
                   >
                     <span class="line-clamp-1 flex-1 break-all">{{ item.name }}</span>
-                    <div class="ml-2 h-3 w-3 shrink-0" v-if="currentPlayInfo.playlistName == item.name">
+
+                    <div class="ml-2 h-3 w-3 shrink-0" v-if="store.currentPlayPlaylistName == item.name">
                       <button class="flex h-full w-full items-center border-0 bg-transparent text-green-500">
                         <svg role="img" height="12" width="12" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
                           <path
@@ -80,15 +81,15 @@
       </div>
       <!-- nav bar end-->
       <!-- main View start-->
-      <div class="scrollwrapper relative row-span-2" ref="scrollwrapperRef">
+      <div class="scrollwrapper relative row-span-2">
         <!-- header start -->
-        <div class="fixed z-[1] h-16 w-full text-white" :style="{ width: scrollwrapperWidth }">
+        <div class="relative z-[1] h-16 w-full text-white">
           <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
             <div
               class="absolute bottom-0 left-0 right-0 top-0 z-[-1] overflow-hidden bg-[#121212]"
               :style="{
                 opacity: scrollPositionRatio,
-                backgroundColor: `rgb(${bgStyle})`
+                backgroundColor: `rgb(${store.coverMainColor})`
               }"
             >
               <div class="h-full bg-[rgba(0,0,0,.6)]"></div>
@@ -106,8 +107,8 @@
               </button>
             </div>
 
-            <div data-testid="topbar-content-wrapper" class="flex-grow" v-show="isShowTopBar">
-              <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: rectY ? 1 : 0 }">
+            <div data-testid="topbar-content-wrapper" class="flex-grow">
+              <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: computedRectY ? 1 : 0 }">
                 <div class="">
                   <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
                     <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
@@ -119,7 +120,7 @@
                     </span>
                   </button>
                 </div>
-                <span class="" draggable="true" data-encore-id="type"> {{ playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].name }}</span>
+                <span class="" draggable="true" data-encore-id="type"> {{ store.currentPlaylistInfo.name }}</span>
               </div>
             </div>
 
@@ -141,180 +142,13 @@
           </header>
         </div>
         <!-- header end -->
-        <RecycleScroller class="scroller" :items="truckList && truckList" :item-size="56" key-field="id" v-show="truckList.length">
-          <template #before>
-            <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
-              <div class="absolute left-0 top-0 h-full w-full" :style="{ background: `rgb(${bgStyle})` }"></div>
-              <div class="absolute left-0 top-0 h-full w-full bg-[linear-gradient(transparent_0,_rgba(0,_0,_0,_0.5)_100%),var(--background-noise)]"></div>
-              <div class="mr-6 flex h-[192px] w-[192px] min-w-[192px] self-end xl:h-[232px] xl:w-[232px] xl:min-w-[232px]">
-                <div class="relative flex h-[inherit]">
-                  <div class="h-full w-full" draggable="false">
-                    <img class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].cover" />
-                  </div>
-                </div>
-              </div>
+        <router-view v-slot="{ Component }">
+          <KeepAlive :max="3">
+            <component :is="Component" :key="$route.fullPath" />
+          </KeepAlive>
+        </router-view>
 
-              <div class="z-0 flex flex-1 flex-col justify-end">
-                <span class="mt-2 w-full font-sans">
-                  <h1 class="font-black text-white" style="margin: 0.08em 0px 0.12em; visibility: visible; width: 100%; font-size: 6rem">
-                    {{ playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].name }}
-                  </h1>
-                </span>
-
-                <div class="flex">
-                  <div class="grid grid-flow-col items-center gap-1 whitespace-nowrap">
-                    <figure class="h-6 w-6" title="基督山伯爵" data-testid="user-widget-avatar">
-                      <div class="h-full w-full">
-                        <img
-                          class="h-full w-full rounded-full object-cover object-center"
-                          aria-hidden="false"
-                          draggable="false"
-                          loading="eager"
-                          src="https://i.scdn.co/image/ab6775700000ee85852e236a1a64a76032ff9e7f"
-                          alt="基督山伯爵"
-                        />
-                      </div>
-                    </figure>
-                    <span class="max-w-[110px] truncate text-white md:text-sm">基督山伯爵</span>
-                  </div>
-
-                  <div class="flex items-center whitespace-nowrap">
-                    <span class="text-white before:mx-1 before:content-['•'] md:text-sm"
-                      >50 首歌曲,
-                      <span class="text-[hsla(0,0%,100%,.7)]">大约 2 小时 30 分钟</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="relative w-full">
-              <div class="absolute z-[-1] h-[232px] w-full bg-[linear-gradient(rgba(0,_0,_0,_0.6)_0,_#121212_100%),_var(--background-noise)]" :style="{ backgroundColor: `rgb(${bgStyle})` }"></div>
-              <div class="px-8 py-6" ref="playBtnRef">
-                <div class="flex w-full items-center">
-                  <div class="mr-8 shrink-0">
-                    <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
-                      <span class="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-500">
-                        <span aria-hidden="true" class="">
-                          <svg role="img" height="28" width="28" aria-hidden="true" viewBox="0 0 24 24">
-                            <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
-                          </svg>
-                        </span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="z-[2] mb-4 px-8" :style="rectY && style">
-              <div class="ml-[-32px] mr-[-32px] h-9 px-8" ref="titleRef">
-                <div
-                  class="grid h-9 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 border-0 border-b border-solid px-4 text-[#b3b3b3]"
-                  :style="{ 'border-color': rectY ? 'transparent' : 'hsla(0,0%,100%,.1)' }"
-                >
-                  <div class="flex items-center justify-end">#</div>
-                  <div class="flex items-center justify-start">
-                    <div class="flex items-center justify-center">
-                      <span class="">标题</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-start">
-                    <div class="">
-                      <span class="">专辑</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-end">
-                    <div class="mr-8 flex items-center justify-center">
-                      <svg class="fill-current" height="16" width="16" viewBox="0 0 16 16">
-                        <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"></path>
-
-                        <path d="M8 3.25a.75.75 0 0 1 .75.75v3.25H11a.75.75 0 0 1 0 1.5H7.25V4A.75.75 0 0 1 8 3.25z"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-4 h-9 px-8" v-if="rectY"></div>
-          </template>
-
-          <template #default="{ item, active }">
-            <div class="px-8">
-              <div class="row group rounded" @dblclick="play(item)">
-                <div class="grid h-14 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 px-4">
-                  <div class="flex items-center justify-center">
-                    <div class="relative h-4 min-h-[16px] w-4 min-w-[16px] text-[#b3b3b3]">
-                      <span
-                        class="absolute right-[0.25em] top-[-4px] group-hover:hidden"
-                        :style="{
-                          color: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? '#1ed760' : '',
-                          display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'none' : ''
-                        }"
-                      >
-                        {{ item.id }}</span
-                      >
-                      <button
-                        class="flex h-full w-full items-center justify-center border-0 bg-transparent text-white opacity-0 group-hover:opacity-100"
-                        aria-label="播放 張學友 的 我真的受傷了"
-                        tabindex="-1"
-                        :style="{
-                          display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'none' : ''
-                        }"
-                      >
-                        <!--  -->
-                        <svg class="fill-current" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24">
-                          <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"></path>
-                        </svg>
-                      </button>
-                      <!--  -->
-                      <div class="relative h-4 w-4" :style="{ display: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? 'block' : 'none' }">
-                        <img src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" />
-                        <button class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停">
-                          <svg class="h-4 w-4 fill-current" role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24" data-encore-id="icon">
-                            <path
-                              d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"
-                            ></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-self-start">
-                    <img
-                      class="mr-4 shrink-0 bg-[#282828] object-cover object-center"
-                      :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(item.cover && item.cover)}`"
-                      draggable="false"
-                      loading="lazy"
-                      alt=""
-                      width="40"
-                      height="40"
-                      v-if="item.cover"
-                    />
-                    <div class="font-sans">
-                      <!--  -->
-                      <div class="line-clamp-1 break-all text-white" :style="{ color: checkPlaylistName == currentPlayInfo.playlistName && currentPlayInfo.file == item.file ? '#1ed760' : '' }">
-                        {{ item.title }}
-                      </div>
-                      <span class="line-clamp-1 break-all text-sm text-[#b3b3b3]" v-for="singer in item.art">{{ singer }}</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-self-start font-sans text-[#b3b3b3]">
-                    <span class="line-clamp-1 break-all"> {{ item.album }} </span>
-                  </div>
-
-                  <div class="flex items-center justify-self-end text-[#b3b3b3]">
-                    <div class="mr-8">{{ formatSongsTime(item.durtion) }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-          <template #after>
-            <div class="h-28"></div>
-          </template>
-        </RecycleScroller>
-
-        <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
+        <!-- <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
           <div class="HKamyJi9H31s99erfVyG">
             <svg xmlns="http://www.w3.org/2000/svg" height="12px" width="56px" x="0px" y="0px" viewBox="0 0 1 100" xml:space="preserve" data-testid="loadingIcon">
               <circle class="BuzoTjBZd1UqCn6DmFJr" cx="-140" cy="50" r="32"></circle>
@@ -322,94 +156,38 @@
               <circle class="BuzoTjBZd1UqCn6DmFJr" cx="140" cy="50" r="32"></circle>
             </svg>
           </div>
-        </div>
+        </div> -->
         <div class="absolute bottom-0 left-1 right-0 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
       </div>
       <!-- main View  end-->
-
-      <router-view></router-view>>
     </div>
   </div>
 </template>
 
 <script setup>
-import { watch, watchEffect, ref, onMounted, reactive, nextTick, computed, onBeforeUnmount } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { watch, ref, onMounted } from 'vue';
 import { throttle, debounce } from 'lodash';
-import { setLocal, getLocal } from '/src/utills/localStorage.js';
-import { bus } from '/src/utills/eventbus.js';
-import { initMainViewScrollBar, initNavScrollBar } from './initScrollbar.js';
+import { getLocal } from '/src/utills/localStorage.js';
+import { initNavScrollBar } from './initScrollbar.js';
+import { store, computedRectY } from './store.js';
 
 const playlists = ref(getLocal('playlists'));
-const titleRef = ref(null);
-let rectY = ref(false);
-const scrollwrapperRef = ref(null);
-let scrollwrapperWidth = ref(0);
-
 let scrollPositionRatio = ref(0);
-let truckList = ref([]);
-let page = 0;
 const navBarRef = ref(null);
-const playlistRef = ref(null);
 const navScrollWrapperRef = ref(null);
 let isShowOverlay = ref(false);
 let navScrollWrapperHeight = ref(0);
-let playBtnRef = ref(null);
-
-let checkPlaylistName = ref('');
-let currentPlayInfo = reactive({
-  playlistName: '',
-  file: ''
-});
-
-function play(trackItem) {
-  currentPlayInfo.playlistName = checkPlaylistName.value;
-  currentPlayInfo.file = trackItem.file;
-  // 触发PlayingBar组件中注册的事件
-  bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, truckList });
-}
-
-onBeforeUnmount(() => {
-  bus.off('nextPlay');
-});
-bus.on('nextPlay', nextPlay);
-function nextPlay(nextTrackInfo) {
-  console.log(nextTrackInfo);
-  currentPlayInfo.file = nextTrackInfo.file;
-}
-
-const playBtnTop = ref(0);
 
 initNavScrollBar('.nav-scroll-content'); //初始化nav滚动条
-const { instance, mainViewScrollTop } = initMainViewScrollBar('.scrollwrapper', '.scroller'); // 初始化main view滚动条
-watch(mainViewScrollTop, (newvalue) => {
-  scrollPositionRatio.value = Math.max(Math.min(1 - (300 - newvalue) / 300, 1));
-  rectY.value = newvalue >= playBtnTop.value;
-});
 
-onMounted(() => {
-  scrollwrapperWidth.value = scrollwrapperRef.value.offsetWidth + 'px';
-  resetNavScrollWrapperHeight();
-});
+onMounted(() => resetNavScrollWrapperHeight());
 
-const style = computed(() => {
-  return {
-    background: '#181818',
-    'border-bottom': `1px solidhsla(0,0%,100%,.1)`,
-    'box-shadow': `0 -1px 0 0 #181818`,
-    'border-bottom': `1px solid hsla(0,0%,100%,.1)`,
-    position: 'fixed',
-    top: '64px',
-    width: scrollwrapperWidth.value
-  };
-});
-
-const bgStyle = computed(() => {
-  if (playlists.value[selectedPlaylistIndex.value]) {
-    // 如果颜色不存在 则设置为默认值 0 0 0
-    return playlists.value[selectedPlaylistIndex.value].main_color ? playlists.value[selectedPlaylistIndex.value].main_color : [0, 0, 0];
+watch(
+  () => store.scrollTop,
+  () => {
+    scrollPositionRatio.value = Math.max(Math.min(1 - (300 - store.scrollTop) / 300, 1));
   }
-});
+);
 
 function resetNavScrollWrapperHeight() {
   const navBarHeight = navBarRef.value.getBoundingClientRect().height;
@@ -419,45 +197,6 @@ function resetNavScrollWrapperHeight() {
 const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
 window.onresize = debounceResetNavScrollWrapperHeight;
 
-let isShowTopBar = ref(true);
-let selectedPlaylistIndex = ref();
-
-function fetchData(playlistName, index) {
-  try {
-    isShowTopBar.value = false;
-    selectedPlaylistIndex.value = index;
-
-    if (instance) {
-      const { viewport } = instance.value.elements();
-      viewport.scrollTo({ top: 0 });
-    }
-
-    checkPlaylistName.value = playlistName;
-    truckList.value.length = 0;
-
-    setTimeout(async () => {
-      if (getLocal(playlistName)) {
-        truckList.value = getLocal(playlistName);
-      } else {
-        const res = await fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`);
-        const data = await res.json();
-        if (data.code !== 200) {
-          throw new Error(data);
-        }
-        truckList.value = data.data;
-        setLocal(playlistName, data.data);
-      }
-      isShowTopBar.value = true;
-      nextTick(() => {
-        playBtnTop.value = playBtnRef.value.getBoundingClientRect().top;
-      });
-    }, Math.floor(Math.random() * 301) + 300);
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-// fetchData('万青乐队');
 function onMousedown() {
   document.addEventListener('mousemove', throttledChangeWidth);
   document.addEventListener('mouseup', onMouseup);
@@ -477,8 +216,6 @@ function changeWidth(event) {
   newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
   navBarWidth.value = newWidth + 'px';
   navBarRef.value.style.width = newWidth + 'px';
-
-  scrollwrapperWidth.value = scrollwrapperRef.value.offsetWidth + 'px';
 }
 
 function onMouseup() {
@@ -487,14 +224,6 @@ function onMouseup() {
   document.removeEventListener('mouseup', onMouseup);
   console.log('抬起了');
 }
-function formatSongsTime(duration) {
-  let minute = Math.floor(duration / 60);
-  let second = Math.floor(duration % 60)
-    .toString()
-    .padStart(2, '0');
-  return `${minute}:${second}`;
-}
-// fetchData(playlistName);
 </script>
 
 <style>

@@ -178,7 +178,7 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.02;
+    audio.volume = 0.1;
   }
   audio.src = src;
 }
@@ -188,14 +188,15 @@ function oncanplay() {
   audio.play();
 }
 
+// 播放结束触发
 function playended() {
   log('播放结束，正在准备播放下一首');
   currentPlayId >= currentPlayTruckList.length - 1 ? (currentPlayId = 0) : currentPlayId++;
   currentPlayTrackInfo.value = currentPlayTruckList[currentPlayId];
   const src = baseUrl + `${currentPlayTruckList[currentPlayId].playlistname}/${currentPlayTruckList[currentPlayId].file}`;
   initAudio(src);
-  // 通知注册此事件的组件更新播放状态
-  bus.emit('nextPlay', currentPlayTruckList[currentPlayId]);
+  // 触发tracklist组件中的事件
+  bus.emit('onBusEventOfNextPlay', currentPlayTruckList[currentPlayId]);
 }
 
 // 切换播放状态
@@ -207,6 +208,7 @@ function togglePlay() {
 function play() {
   playing.value = true;
   isAnimation.value = true;
+  bus.emit('onBusEventOfPlay', true); //触发tracklist组件中的事件总线注册的事件，通知及时更新播放状态
   requestAnimationFrame(updatePlayProgress);
 }
 
@@ -214,6 +216,7 @@ function play() {
 function paused() {
   playing.value = false;
   isAnimation.value = false;
+  bus.emit('onBusEventOfPaused', true); //触发tracklist组件中的事件
 }
 
 //音频发生错误时
