@@ -17,7 +17,8 @@ const routes = [
   {
     path: '/playlist/:name',
     name: 'Playlist',
-    component: Playlist
+    component: Playlist,
+    children: [{ path: '', component: test }]
   },
   {
     path: '/test',

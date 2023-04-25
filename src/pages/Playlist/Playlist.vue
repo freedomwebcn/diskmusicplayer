@@ -43,13 +43,26 @@
               </div>
               <div class="nav-scroll-content">
                 <ul class="mt-2">
+                    <!-- @click="fetchData(item.name, index)" -->
+
                   <li
                     class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
                     v-for="(item, index) in playlists"
-                    @click="fetchData(item.name, index)"
+                    :key="index"
+                    @click='$router.push(`/playlist/${item.name}`)'
                     :style="{ color: selectedPlaylistIndex == index ? '#fff' : '' }"
                   >
-                    <span class="line-clamp-1 break-all">{{ item.name }}</span>
+                    <span class="line-clamp-1 flex-1 break-all">{{ item.name }}</span>
+                    <div class="ml-2 h-3 w-3 shrink-0" v-if="currentPlayInfo.playlistName == item.name">
+                      <button class="flex h-full w-full items-center border-0 bg-transparent text-green-500">
+                        <svg role="img" height="12" width="12" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
+                          <path
+                            d="M9.741.85a.75.75 0 0 1 .375.65v13a.75.75 0 0 1-1.125.65l-6.925-4a3.642 3.642 0 0 1-1.33-4.967 3.639 3.639 0 0 1 1.33-1.332l6.925-4a.75.75 0 0 1 .75 0zm-6.924 5.3a2.139 2.139 0 0 0 0 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 0 1 0 4.88z"
+                          ></path>
+                          <path d="M11.5 13.614a5.752 5.752 0 0 0 0-11.228v1.55a4.252 4.252 0 0 1 0 8.127v1.55z"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </li>
                 </ul>
               </div>
@@ -93,7 +106,7 @@
               </button>
             </div>
 
-            <div data-testid="topbar-content-wrapper" class="flex-grow">
+            <div data-testid="topbar-content-wrapper" class="flex-grow" v-show="isShowTopBar">
               <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: rectY ? 1 : 0 }">
                 <div class="">
                   <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
@@ -106,7 +119,7 @@
                     </span>
                   </button>
                 </div>
-                <span class="" draggable="true" data-encore-id="type">Hot country</span>
+                <span class="" draggable="true" data-encore-id="type"> {{ playlists[selectedPlaylistIndex] && playlists[selectedPlaylistIndex].name }}</span>
               </div>
             </div>
 
@@ -313,19 +326,19 @@
         <div class="absolute bottom-0 left-1 right-0 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
       </div>
       <!-- main View  end-->
+
+      <router-view></router-view>>
     </div>
   </div>
 </template>
 
 <script setup>
-import { watch, watchEffect, ref, onMounted, reactive, nextTick, computed } from 'vue';
+import { watch, watchEffect, ref, onMounted, reactive, nextTick, computed, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { throttle, debounce } from 'lodash';
 import { setLocal, getLocal } from '/src/utills/localStorage.js';
 import { bus } from '/src/utills/eventbus.js';
 import { initMainViewScrollBar, initNavScrollBar } from './initScrollbar.js';
-
-console.log(initMainViewScrollBar);
 
 const playlists = ref(getLocal('playlists'));
 const titleRef = ref(null);
@@ -349,13 +362,20 @@ let currentPlayInfo = reactive({
   file: ''
 });
 
-function play(currentPlayItem) {
+function play(trackItem) {
   currentPlayInfo.playlistName = checkPlaylistName.value;
-  currentPlayInfo.file = currentPlayItem.file;
-  // 歌曲项中的数据不包括歌曲所属的歌单名，这里手动加进去，因为播放接口需要歌单名
-  currentPlayItem['playlistName'] = currentPlayInfo.playlistName;
-  // // 触发PlayingBar组件中的初始化音频方法
-  bus.emit('initAudio', currentPlayItem);
+  currentPlayInfo.file = trackItem.file;
+  // 触发PlayingBar组件中注册的事件
+  bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, truckList });
+}
+
+onBeforeUnmount(() => {
+  bus.off('nextPlay');
+});
+bus.on('nextPlay', nextPlay);
+function nextPlay(nextTrackInfo) {
+  console.log(nextTrackInfo);
+  currentPlayInfo.file = nextTrackInfo.file;
 }
 
 const playBtnTop = ref(0);
@@ -365,7 +385,6 @@ const { instance, mainViewScrollTop } = initMainViewScrollBar('.scrollwrapper', 
 watch(mainViewScrollTop, (newvalue) => {
   scrollPositionRatio.value = Math.max(Math.min(1 - (300 - newvalue) / 300, 1));
   rectY.value = newvalue >= playBtnTop.value;
-  // console.log('watch');
 });
 
 onMounted(() => {
@@ -400,47 +419,44 @@ function resetNavScrollWrapperHeight() {
 const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
 window.onresize = debounceResetNavScrollWrapperHeight;
 
+let isShowTopBar = ref(true);
 let selectedPlaylistIndex = ref();
-function fetchData(playlistName, index) {
-  selectedPlaylistIndex.value = index;
-  if (instance) {
-    const { viewport } = instance.value.elements();
-    viewport.scrollTo({ top: 0 });
-  }
 
-  checkPlaylistName.value = playlistName;
-  truckList.value.length = 0;
-  if (getLocal(playlistName)) {
-    setTimeout(() => {
-      truckList.value = getLocal(playlistName);
+function fetchData(playlistName, index) {
+  try {
+    isShowTopBar.value = false;
+    selectedPlaylistIndex.value = index;
+
+    if (instance) {
+      const { viewport } = instance.value.elements();
+      viewport.scrollTo({ top: 0 });
+    }
+
+    checkPlaylistName.value = playlistName;
+    truckList.value.length = 0;
+
+    setTimeout(async () => {
+      if (getLocal(playlistName)) {
+        truckList.value = getLocal(playlistName);
+      } else {
+        const res = await fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`);
+        const data = await res.json();
+        if (data.code !== 200) {
+          throw new Error(data);
+        }
+        truckList.value = data.data;
+        setLocal(playlistName, data.data);
+      }
+      isShowTopBar.value = true;
       nextTick(() => {
         playBtnTop.value = playBtnRef.value.getBoundingClientRect().top;
       });
-    }, 300);
-    return;
+    }, Math.floor(Math.random() * 301) + 300);
+  } catch (error) {
+    console.log(error);
   }
-  fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}/${page}`)
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      if (data.code == 200) {
-        truckList.value = data.data;
-        nextTick(() => {
-          playBtnTop.value = playBtnRef.value.getBoundingClientRect().top;
-        });
-        setTimeout(() => {
-          setLocal(playlistName, data.data);
-        }, 300);
-        console.log(data);
-        return;
-      }
-      return Promise.reject(data);
-    })
-    .catch((errdata) => {
-      console.log(errdata);
-    });
 }
+
 // fetchData('万青乐队');
 function onMousedown() {
   document.addEventListener('mousemove', throttledChangeWidth);

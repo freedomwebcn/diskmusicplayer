@@ -143,21 +143,31 @@ let duration = ref('0:00');
 let currentTime = ref('0:00');
 let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
-let currentPlayTrackInfo = {};
+let currentPlayTrackInfo = ref({});
 
 const { log } = console;
 onMounted(() => {
-  // initAudio('http://127.0.0.1:5000/audio');
-  bus.on('initAudio', initAudio);
+  // 在事件总线中注册一个播放音乐事件
+  bus.on('onBusEventOfPlayTrack', onBusEventOfPlayTrack);
 });
 onBeforeUnmount(() => {
-  bus.off('initAudio');
+  // 页面卸载时 清除事件
+  bus.off('onBusEventOfPlayTrack');
 });
 
-function initAudio(playInfo) {
-  currentPlayTrackInfo = playInfo;
-  console.log(playInfo);
-  const src = `http://127.0.0.1:5000/audio/${playInfo.playlistName}/${playInfo.file}`;
+let currentPlayTruckList = [];
+let currentPlayId;
+let baseUrl = `http://127.0.0.1:5000/audio/`;
+function onBusEventOfPlayTrack({ id, truckList }) {
+  console.log(id);
+  currentPlayId = id;
+  currentPlayTruckList.length = 0;
+  currentPlayTruckList.push(...truckList.value);
+  currentPlayTrackInfo.value = currentPlayTruckList[id];
+  const src = baseUrl + `${currentPlayTruckList[id].playlistname}/${currentPlayTruckList[id].file}`;
+  initAudio(src);
+}
+function initAudio(src) {
   log(src);
   audio ? log('音频对象已存在，只需要更新音频地址') : log('正在初始化音频对象');
   if (!audio) {
@@ -166,14 +176,26 @@ function initAudio(playInfo) {
     audio.addEventListener('pause', paused);
     audio.addEventListener('loadedmetadata', loadedmetadata);
     audio.addEventListener('canplay', oncanplay);
+    audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.1;
+    audio.volume = 0.02;
   }
   audio.src = src;
 }
+
 function oncanplay() {
   log('可以播放了');
   audio.play();
+}
+
+function playended() {
+  log('播放结束，正在准备播放下一首');
+  currentPlayId >= currentPlayTruckList.length - 1 ? (currentPlayId = 0) : currentPlayId++;
+  currentPlayTrackInfo.value = currentPlayTruckList[currentPlayId];
+  const src = baseUrl + `${currentPlayTruckList[currentPlayId].playlistname}/${currentPlayTruckList[currentPlayId].file}`;
+  initAudio(src);
+  // 通知注册此事件的组件更新播放状态
+  bus.emit('nextPlay', currentPlayTruckList[currentPlayId]);
 }
 
 // 切换播放状态
