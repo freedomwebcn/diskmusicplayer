@@ -1,6 +1,6 @@
 <template>
-  <div class="wrapper mt-[-64px]" ref="wrapperRef">
-    <RecycleScroller class="scroller" :items="truckList" :item-size="56" key-field="id">
+  <div class="wrapper mt-[-64px]">
+    <RecycleScroller class="scroller" :items="trackListData" :item-size="56" key-field="id">
       <template #before>
         <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
           <div class="absolute left-0 top-0 h-full w-full" :style="{ background: `rgb(${store.coverMainColor})` }"></div>
@@ -8,7 +8,7 @@
           <div class="mr-6 flex h-[192px] w-[192px] min-w-[192px] self-end xl:h-[232px] xl:w-[232px] xl:min-w-[232px]">
             <div class="relative flex h-[inherit]">
               <div class="h-full w-full" draggable="false">
-                <img class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="store.currentPlaylistInfo.cover" @load="coverLoaded" v-show="showCover" />
+                <img v-show="showCover" class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="store.currentPlaylistInfo.cover" @load="coverLoaded" />
               </div>
             </div>
           </div>
@@ -39,7 +39,7 @@
 
               <div class="flex items-center whitespace-nowrap">
                 <span class="text-white before:mx-1 before:content-['•'] md:text-sm">
-                 {{ store.currentPlaylistInfo.track_count}} 首歌曲,
+                  {{ store.currentPlaylistInfo.track_count }} 首歌曲,
                   <span class="text-[hsla(0,0%,100%,.7)]">大约 2 小时 30 分钟</span>
                 </span>
               </div>
@@ -51,7 +51,7 @@
             class="absolute z-[-1] h-[232px] w-full bg-[linear-gradient(rgba(0,_0,_0,_0.6)_0,_#121212_100%),_var(--background-noise)]"
             :style="{ backgroundColor: `rgb(${store.coverMainColor})` }"
           ></div>
-          <div class="px-8 py-6" ref="playBtnRef">
+          <div ref="playBtnRef" class="px-8 py-6">
             <div class="flex w-full items-center">
               <div class="mr-8 shrink-0">
                 <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
@@ -68,10 +68,12 @@
           </div>
         </div>
         <div class="z-[2] mb-4 px-8" :style="computedRectY && style">
-          <div class="ml-[-32px] mr-[-32px] h-9 px-8" ref="titleRef">
+          <div ref="titleRef" class="ml-[-32px] mr-[-32px] h-9 px-8">
             <div
               class="grid h-9 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 border-0 border-b border-solid px-4 text-[#b3b3b3]"
-              :style="{ 'border-color': computedRectY ? 'transparent' : 'hsla(0,0%,100%,.1)' }"
+              :style="{
+                'border-color': computedRectY ? 'transparent' : 'hsla(0,0%,100%,.1)'
+              }"
             >
               <div class="flex items-center justify-end">#</div>
               <div class="flex items-center justify-start">
@@ -96,8 +98,7 @@
             </div>
           </div>
         </div>
-
-        <div class="mb-4 h-9 px-8" v-if="computedRectY"></div>
+        <div v-if="computedRectY" class="mb-4 h-9 px-8"></div>
       </template>
 
       <template #default="{ item }">
@@ -108,17 +109,19 @@
                 <div class="relative h-4 min-h-[16px] w-4 min-w-[16px] text-[#b3b3b3]">
                   <!-- 序号 -->
                   <span
+                    v-if="store.currentPlayTrack != item.file || playStatus"
                     class="absolute right-[0.25em] top-[-4px] group-hover:hidden"
-                    v-if="currentPlayTrack != item.file || playStatus"
-                    :style="{ color: currentPlayTrack == item.file ? '#1ed760' : '' }"
+                    :style="{
+                      color: store.currentPlayTrack == item.file ? '#1ed760' : ''
+                    }"
                   >
                     {{ item.id }}</span
                   >
 
                   <!-- 曲目列表的播放按钮 -->
                   <button
+                    v-if="store.currentPlayTrack != item.file || playStatus"
                     class="flex h-full w-full items-center justify-center border-0 bg-transparent text-white opacity-0 group-hover:opacity-100"
-                    v-if="currentPlayTrack != item.file || playStatus"
                     tabindex="-1"
                   >
                     <svg class="fill-current" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24">
@@ -129,9 +132,9 @@
                   <!--  -->
                   <div class="relative h-4 w-4">
                     <!-- 播放中的图标 -->
-                    <img src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" v-if="currentPlayTrack == item.file && !playStatus" />
+                    <img v-if="store.currentPlayTrack == item.file && !playStatus" src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" />
                     <!-- 暂停 -->
-                    <button class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停" v-if="currentPlayTrack == item.file && !playStatus">
+                    <button v-if="store.currentPlayTrack == item.file && !playStatus" class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停">
                       <svg class="h-4 w-4 fill-current" role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24" data-encore-id="icon">
                         <path
                           d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"
@@ -143,6 +146,7 @@
               </div>
               <div class="flex items-center justify-self-start">
                 <img
+                  v-if="item.cover"
                   class="mr-4 shrink-0 bg-[#282828] object-cover object-center"
                   :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(item.cover && item.cover)}`"
                   draggable="false"
@@ -150,14 +154,18 @@
                   alt=""
                   width="40"
                   height="40"
-                  v-if="item.cover"
                 />
                 <div class="font-sans">
                   <!--  -->
-                  <div class="line-clamp-1 break-all text-white" :style="{ color: currentPlayTrack == item.file ? '#1ed760' : '' }">
+                  <div
+                    class="line-clamp-1 break-all text-white"
+                    :style="{
+                      color: store.currentPlayTrack == item.file ? '#1ed760' : ''
+                    }"
+                  >
                     {{ item.title }}
                   </div>
-                  <span class="line-clamp-1 break-all text-sm text-[#b3b3b3]" v-for="singer in item.art">{{ singer }}</span>
+                  <span v-for="singer in item.art" class="line-clamp-1 break-all text-sm text-[#b3b3b3]">{{ singer }}</span>
                 </div>
               </div>
               <div class="flex items-center justify-self-start font-sans text-[#b3b3b3]">
@@ -179,98 +187,68 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive, onActivated, onDeactivated, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, watch, computed, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
 import { store, computedRectY } from './store.js';
 import { bus } from '/src/utills/eventbus.js';
+import { reqTrackListData } from './api.js';
 
 const { log } = console;
 
 let route = useRoute();
-let routeParamsPlaylistName = route.params.name;
-const wrapperRef = ref(null);
-let wrapperWidth = ref();
-const { instance } = initMainViewScrollBar('.wrapper', '.scroller');//初始化滚动条
 
-// 当前播放的曲目
-let currentPlayTrack = ref();
+initMainViewScrollBar('.wrapper', '.scroller'); //初始化滚动条
 
 function play(trackItem) {
-  currentPlayTrack.value = trackItem.file;
-  store.setCurrentPlayPlaylistName(trackItem.playlistname)
+  store.setCurrentPlayTrack(trackItem.file);
+  store.setCurrentPlayPlaylistName(trackItem.playlistname);
   // 触发PlayingBar组件中注册的事件
-  bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, truckList });
+  bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, trackListData });
 }
-
 
 let playStatus = ref(); //播放状态
 // 在事件总线注册一个事件，当歌曲暂停时触发
 bus.on('onBusEventOfPaused', (status) => (playStatus.value = status));
 bus.on('onBusEventOfPlay', (status) => (playStatus.value = !status));
-bus.on('onBusEventOfNextPlay', (currentTrack) => (currentPlayTrack.value = currentTrack.file));
+bus.on('onBusEventOfNextPlay', (currentTrack) => store.setCurrentPlayTrack(currentTrack.file));
 
 onBeforeUnmount(() => {
+  log('页面卸载');
   // 页面卸载时清除事件
   bus.off('onBusEventOfPaused');
   bus.off('onBusEventOfPlay');
   bus.off('onBusEventOfNextPlay');
-
 });
+
+let trackListData = [];
+let showCover = ref(false);
 
 watch(
   () => route.params.name,
   () => {
-    if (!instance.value) return;
-    const { viewport } = instance.value.elements();
-    const { scrollTop } = viewport;
-    scrollTop > 0 && viewport.scrollTo({ top: 0 });
-  }
+    const { data } = reqTrackListData(route.params.name);
+    console.log(data);
+    trackListData = data;
+    showCover.value = false;
+    store.setCurrentPlaylistInfo(route.params);
+    console.log('watch');
+  },
+  { immediate: true }
 );
-onMounted(() => {
-  wrapperWidth.value = wrapperRef.value.offsetWidth + 'px';
-});
 
 const style = computed(() => {
   return {
     background: '#181818',
-    'border-bottom': `1px solidhsla(0,0%,100%,.1)`,
     'box-shadow': `0 -1px 0 0 #181818`,
     'border-bottom': `1px solid hsla(0,0%,100%,.1)`,
     position: 'fixed',
     top: '64px',
-    width: wrapperWidth.value
+    width: store.scrollWrapperWidth
   };
 });
 
-let showCover = ref();
-onActivated(() => {
-  showCover.value = false;
-  store.setCurrentPlaylistInfo(route.params);
-});
-
-function coverLoaded() {
-  showCover.value = true;
-}
-
-let truckList = ref([]);
-
-fetchData(routeParamsPlaylistName);
-
-async function fetchData(playlistName) {
-  try {
-    truckList.value.length = 0;
-    const res = await fetch(`http://127.0.0.1:5000/get_playlist_track/${playlistName}`);
-    const data = await res.json();
-    if (data.code !== 200) {
-      throw new Error(data);
-    }
-    console.log(data.data);
-    truckList.value = data.data;
-  } catch (error) {
-    console.log(error);
-  }
-}
+const coverLoaded = () => (showCover.value = true);
 
 function formatSongsTime(duration) {
   let minute = Math.floor(duration / 60);
@@ -292,6 +270,11 @@ function formatSongsTime(duration) {
 }
 
 .wrapper ::-webkit-scrollbar {
-  display: none; /* Chrome Safari */
+  width: 0;
+  height: 0;
+}
+.wrapper {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 </style>

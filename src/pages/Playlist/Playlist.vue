@@ -1,8 +1,8 @@
 <template>
-  <div class="playlist | h-[calc(100%-91px)]">
+  <div class="playlist | h-[calc(100%-90px)]">
     <div class="relative grid h-full w-full grid-cols-[auto_1fr] grid-rows-[auto_1fr] overflow-hidden">
       <!-- nav bar Start-->
-      <div class="relative row-span-2 row-start-1 flex min-h-0 w-[calc(var(--nav-w)+9px)] flex-col bg-[#000] text-white" ref="navBarRef">
+      <div ref="navBarRef" class="relative row-span-2 row-start-1 flex min-h-0 w-[calc(var(--nav-w)+9px)] flex-col bg-[#000] text-white">
         <div class="flex h-full w-full flex-1 flex-col" style="padding-top: var(--nav-pt)">
           <div class="flex flex-shrink-0 flex-row justify-between" role="banner">
             <a draggable="false" class="relative mb-[18px] flex-1 border-0 px-6 text-white">
@@ -35,26 +35,24 @@
           </ul>
 
           <!-- scroll start -->
-          <div class="relative mt-[13px] flex h-full flex-col" ref="navScrollWrapperRef" :style="{ height: `${navScrollWrapperHeight}px` }">
+          <div ref="navScrollWrapperRef" class="relative mt-[13px] flex h-full flex-col" :style="{ height: `${navScrollWrapperHeight}px` }">
             <div class="flex h-full flex-1 flex-col">
               <div class="relative z-10">
                 <hr class="mx-6 mt-2 h-[1px] border-none bg-[#282828]" />
                 <div class="absolute bottom-[-16px] left-0 right-0 h-4 bg-[linear-gradient(180deg,_rgba(0,0,0,.7),_transparent)]"></div>
               </div>
               <div class="nav-scroll-content">
-                <ul class="mt-2">
-                  <!-- @click="fetchData(item.name, index)" -->
-
+                <ul class="mt-2" @click="reqPlaylistData">
                   <li
-                    class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
                     v-for="(item, index) in playlists"
                     :key="index"
-                    @click="$router.push(`/playlist/${encodeURIComponent(item.name)}`)"
-                    :style="{ color: store.currentPlaylistInfo.name == item.name ? '#fff' : '' }"
-                  >
+                    class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
+                    :style="{
+                      color: store.currentPlaylistInfo.name == item.name ? '#fff' : ''
+                    }">
                     <span class="line-clamp-1 flex-1 break-all">{{ item.name }}</span>
 
-                    <div class="ml-2 h-3 w-3 shrink-0" v-if="store.currentPlayPlaylistName == item.name">
+                    <div v-if="store.currentPlayPlaylistName == item.name" class="ml-2 h-3 w-3 shrink-0">
                       <button class="flex h-full w-full items-center border-0 bg-transparent text-green-500">
                         <svg role="img" height="12" width="12" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
                           <path
@@ -72,16 +70,16 @@
         </div>
         <div
           class="linearGradient absolute right-[-4.5px] z-[11] h-full w-[9px] cursor-col-resize opacity-0 hover:opacity-100"
-          @mousedown="onMousedown"
           :style="{ opacity: isShowOverlay ? 1 : '' }"
+          @mousedown="onMousedown"
         ></div>
 
-        <div class="absolute bottom-0 left-0 right-1 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
+        <div v-if="isShowOverlay" class="absolute bottom-0 left-0 right-1 top-0 z-20 cursor-col-resize bg-transparent"></div>
         <!-- scroll end -->
       </div>
       <!-- nav bar end-->
       <!-- main View start-->
-      <div class="scrollwrapper relative row-span-2">
+      <div ref="scrollwrapperRef" class="scrollwrapper relative row-span-2">
         <!-- header start -->
         <div class="relative z-[1] h-16 w-full text-white">
           <header class="relative flex h-full w-full items-center justify-between gap-4 lg:px-8 lg:py-4">
@@ -142,11 +140,13 @@
           </header>
         </div>
         <!-- header end -->
-        <router-view v-slot="{ Component }">
+        <!-- <router-view v-slot="{ Component }">
           <KeepAlive :max="3">
             <component :is="Component" :key="$route.fullPath" />
           </KeepAlive>
-        </router-view>
+        </router-view> -->
+
+        <router-view></router-view>
 
         <!-- <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
           <div class="HKamyJi9H31s99erfVyG">
@@ -157,7 +157,7 @@
             </svg>
           </div>
         </div> -->
-        <div class="absolute bottom-0 left-1 right-0 top-0 z-20 cursor-col-resize bg-transparent" v-if="isShowOverlay"></div>
+        <div v-if="isShowOverlay" class="absolute bottom-0 left-1 right-0 top-0 z-20 cursor-col-resize bg-transparent"></div>
       </div>
       <!-- main View  end-->
     </div>
@@ -166,21 +166,30 @@
 
 <script setup>
 import { watch, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
 import { throttle, debounce } from 'lodash';
 import { getLocal } from '/src/utills/localStorage.js';
 import { initNavScrollBar } from './initScrollbar.js';
 import { store, computedRectY } from './store.js';
 
-const playlists = ref(getLocal('playlists'));
+const router = useRouter();
+const playlists = getLocal('playlists');
 let scrollPositionRatio = ref(0);
 const navBarRef = ref(null);
 const navScrollWrapperRef = ref(null);
 let isShowOverlay = ref(false);
 let navScrollWrapperHeight = ref(0);
+let scrollwrapperRef = ref(null);
 
 initNavScrollBar('.nav-scroll-content'); //初始化nav滚动条
 
-onMounted(() => resetNavScrollWrapperHeight());
+const reqPlaylistData = (e) => router.push(`/playlist/${encodeURIComponent(e.target.innerText)}`);
+
+onMounted(() => {
+  store.setScrollWrapperWidth(scrollwrapperRef.value.offsetWidth);
+  resetNavScrollWrapperHeight();
+});
 
 watch(
   () => store.scrollTop,
@@ -194,8 +203,8 @@ function resetNavScrollWrapperHeight() {
   const navScrollWrapperTop = navScrollWrapperRef.value.offsetTop;
   navScrollWrapperHeight.value = navBarHeight - navScrollWrapperTop;
 }
-const debounceResetNavScrollWrapperHeight = debounce(resetNavScrollWrapperHeight, 150);
-window.onresize = debounceResetNavScrollWrapperHeight;
+const debounceResetNavScrollWrapperHeightFn = debounce(resetNavScrollWrapperHeight, 150);
+window.onresize = debounceResetNavScrollWrapperHeightFn;
 
 function onMousedown() {
   document.addEventListener('mousemove', throttledChangeWidth);
@@ -216,6 +225,7 @@ function changeWidth(event) {
   newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
   navBarWidth.value = newWidth + 'px';
   navBarRef.value.style.width = newWidth + 'px';
+  store.setScrollWrapperWidth(scrollwrapperRef.value.offsetWidth);
 }
 
 function onMouseup() {
@@ -232,11 +242,12 @@ function onMouseup() {
   --nav-pt: 24px;
 }
 
-.scroller {
+.nav-scroll-content .scroller {
   height: 100%;
   width: 100%;
   overflow-x: hidden;
 }
+
 .os-scrollbar-vertical {
   z-index: 10;
 }
@@ -291,6 +302,7 @@ function onMouseup() {
 .BuzoTjBZd1UqCn6DmFJr:nth-of-type(3) {
   animation-delay: 0.2s;
 }
+
 .hover .row {
   background: hsla(0, 0%, 100%, 0.1);
 }

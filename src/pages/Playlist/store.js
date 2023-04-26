@@ -1,5 +1,5 @@
 import { reactive, computed } from 'vue';
-import { setLocal, getLocal } from '/src/utills/localStorage.js';
+import { getLocal } from '/src/utills/localStorage.js';
 
 const playlists = getLocal('playlists');
 
@@ -8,6 +8,8 @@ export const store = reactive({
   coverMainColor: [],
   currentPlaylistInfo: {},
   currentPlayPlaylistName: '',
+  currentPlayTrack: '',
+  scrollWrapperWidth: '',
 
   setScrollTop(top) {
     this.scrollTop = top;
@@ -21,6 +23,13 @@ export const store = reactive({
 
   setCurrentPlayPlaylistName(name) {
     this.currentPlayPlaylistName = name;
+  },
+
+  setCurrentPlayTrack(name) {
+    this.currentPlayTrack = name;
+  },
+  setScrollWrapperWidth(w) {
+    this.scrollWrapperWidth = w + 'px';
   }
 });
 

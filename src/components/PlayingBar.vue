@@ -37,7 +37,9 @@
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-xs">
-                        <span v-for="art in currentPlayTrackInfo.art"> {{ art }} </span>
+                        <span v-for="art in currentPlayTrackInfo.art" :key="art">
+                          {{ art }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -98,14 +100,19 @@
             </div>
             <!-- 进度条与时间 -->
             <div class="flex w-full flex-row items-center justify-between gap-2">
-              <div class="min-w-[40px] text-right text-xs text-[#a7a7a7]">{{ currentTime }}</div>
+              <div class="min-w-[40px] text-right text-xs text-[#a7a7a7]">
+                {{ currentTime }}
+              </div>
 
               <div class="progress-bar-wrapper | group relative flex h-3 w-full items-center" @mousedown="startProgressSlide" ref="progressBarWrapperRef">
                 <div class="progress-bar | relative h-1 w-full rounded-sm bg-[hsla(0,0%,100%,.3)]">
                   <div class="h-full w-full overflow-hidden rounded-sm">
                     <div
                       class="fill | h-full w-full rounded-sm bg-white group-hover:bg-green-500"
-                      :style="{ transform: `translateX(calc(-100% + ${progressBarTransform}))`, backgroundColor: `${showBgColor ? 'rgb(34, 197, 94)' : ''}` }"
+                      :style="{
+                        transform: `translateX(calc(-100% + ${progressBarTransform}))`,
+                        backgroundColor: `${showBgColor ? 'rgb(34, 197, 94)' : ''}`
+                      }"
                     ></div>
                   </div>
                   <div
@@ -118,7 +125,9 @@
                 </div>
               </div>
 
-              <div class="min-w-[40px] text-left text-xs text-[#a7a7a7]">{{ duration }}</div>
+              <div class="min-w-[40px] text-left text-xs text-[#a7a7a7]">
+                {{ duration }}
+              </div>
             </div>
           </div>
         </div>
@@ -132,7 +141,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive } from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { bus } from '/src/utills/eventbus.js';
 
 let audio = null;
@@ -158,11 +167,12 @@ onBeforeUnmount(() => {
 let currentPlayTruckList = [];
 let currentPlayId;
 let baseUrl = `http://127.0.0.1:5000/audio/`;
-function onBusEventOfPlayTrack({ id, truckList }) {
+
+function onBusEventOfPlayTrack({ id, trackListData }) {
   console.log(id);
   currentPlayId = id;
   currentPlayTruckList.length = 0;
-  currentPlayTruckList.push(...truckList.value);
+  currentPlayTruckList.push(...trackListData.value);
   currentPlayTrackInfo.value = currentPlayTruckList[id];
   const src = baseUrl + `${currentPlayTruckList[id].playlistname}/${currentPlayTruckList[id].file}`;
   initAudio(src);
@@ -178,7 +188,7 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.1;
+    audio.volume = 0.02;
   }
   audio.src = src;
 }

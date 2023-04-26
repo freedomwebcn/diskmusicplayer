@@ -18,7 +18,12 @@
             <div class="playlist-item" v-for="(playlist, index) in playlists.data" @click="$router.push(`/playlist/${encodeURIComponent(playlist.name)}`)">
               <div class="playlist-item-content">
                 <div class="cover-wrapper">
-                  <div class="cover" :style="{ backgroundColor: playlist.main_color.length > 0 ? `rgb(${playlist.main_color})` : '' }">
+                  <div
+                    class="cover"
+                    :style="{
+                      backgroundColor: playlist.main_color.length > 0 ? `rgb(${playlist.main_color})` : ''
+                    }"
+                  >
                     <img draggable="false" loading="lazy" :src="playlist.cover" @load="imgloaded(index)" ref="imgRef" />
                   </div>
                   <div class="icon"></div>
@@ -32,7 +37,7 @@
             </div>
           </template>
 
-          <div class="playlist-item item-data-loading" v-else v-for="item in playlistsCount">
+          <div class="playlist-item item-data-loading" v-else v-for="item in playlistsCount" :key="item">
             <div class="playlist-item-content">
               <div class="cover-wrapper">
                 <div class="cover">
