@@ -200,9 +200,11 @@ let route = useRoute();
 
 initMainViewScrollBar('.wrapper', '.scroller'); //初始化滚动条
 
+
 function play(trackItem) {
   store.setCurrentPlayTrack(trackItem.file);
   store.setCurrentPlayPlaylistName(trackItem.playlistname);
+
   // 触发PlayingBar组件中注册的事件
   bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, trackListData });
 }

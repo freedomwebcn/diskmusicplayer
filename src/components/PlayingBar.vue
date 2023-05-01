@@ -58,8 +58,8 @@
                   aria-label="开启随机播放"
                   :style="colorStyle"
                   :disabled="!currentPlayTruckListHasData"
-                  @click="handeShufflePlay"
-                  :class="{ shuffle_play_active: shufflePlay }"
+                  @click="shufflePlayStatus = !shufflePlayStatus"
+                  :class="{ shuffle_play_active: shufflePlayStatus }"
                 >
                   <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path
@@ -183,7 +183,9 @@ let currentTime = ref('-:--');
 let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
 let currentPlayTrackInfo = ref({});
-let shufflePlay = ref(false); //随机播放
+let shufflePlayStatus = ref(false); //随机播放
+// 保存原始播放列表
+let originalPlayList = [];
 
 const { log } = console;
 onMounted(() => {
@@ -206,15 +208,14 @@ const colorStyle = computed(() => {
   };
 });
 
-const currentPlayTruckListHasData = computed(() => {
-  return currentPlayTruckList.length > 0;
-});
+const currentPlayTruckListHasData = computed(() => currentPlayTruckList.length > 0);
 
 function onBusEventOfPlayTrack({ id, trackListData }) {
-  console.log(id);
-  currentPlayId.value = id;
   currentPlayTruckList.length = 0;
   currentPlayTruckList.push(...trackListData.value);
+  currentPlayId.value = id;
+  playCurrentTrack(currentPlayTruckList[currentPlayId.value]); //在随机播放列表前播放
+  shufflePlayStatus.value && handeShufflePlay();
 }
 
 function initAudio(src) {
@@ -242,6 +243,7 @@ function oncanplay() {
 function playended() {
   log('播放结束，正在准备播放下一首');
   currentPlayId.value >= currentPlayTruckList.length - 1 ? (currentPlayId.value = 0) : currentPlayId.value++;
+  playCurrentTrack(currentPlayTruckList[currentPlayId.value]);
 }
 
 // 切换播放状态
@@ -267,25 +269,26 @@ function paused() {
 function playNextOrPrev(num) {
   //-1 上一首 ，1 下一首
   currentPlayId.value = (currentPlayId.value + num + currentPlayTruckList.length) % currentPlayTruckList.length;
+  playCurrentTrack(currentPlayTruckList[currentPlayId.value]);
 }
 
-// 保存原始播放列表
-let originalPlayList = [];
+watch(shufflePlayStatus, () => handeShufflePlay());
+
 // 处理随机播放事件
 function handeShufflePlay() {
-  shufflePlay.value = !shufflePlay.value;
-  if (shufflePlay.value) {
-    // 开启随机播放 复制原数组
-    originalPlayList = currentPlayTruckList.slice(); // 复制当前播放列表
+  if (shufflePlayStatus.value) {
+    originalPlayList = currentPlayTruckList.slice();
     shuffleArray(currentPlayTruckList);
   } else {
+    const index = originalPlayList.findIndex((item) => item.id == currentPlayTrackInfo.value.id);
+    currentPlayId.value = index;
     // 关闭随机播放 恢复列表原始顺序
     currentPlayTruckList.splice(0, currentPlayTruckList.length, ...originalPlayList); // 将原始播放列表插入回去
     originalPlayList = [];
   }
 }
 
-// 洗牌算法打乱播放列表
+// 打乱播放列表
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -293,14 +296,13 @@ function shuffleArray(array) {
   }
 }
 
-// 监视当前播放ID 如果发生变化 播放新的音乐
-watch(currentPlayId, () => {
-  // 触发tracklist组件中的事件 通知更新当前歌曲播放的显示状态
-  bus.emit('onBusEventOfCurrentPlay', currentPlayTruckList[currentPlayId.value]);
-  currentPlayTrackInfo.value = currentPlayTruckList[currentPlayId.value];
-  const src = baseUrl + `${currentPlayTruckList[currentPlayId.value].playlistname}/${currentPlayTruckList[currentPlayId.value].file}`;
+// 播放当前音乐
+function playCurrentTrack(truckInfo) {
+  bus.emit('onBusEventOfCurrentPlay', truckInfo);
+  currentPlayTrackInfo.value = truckInfo;
+  const src = baseUrl + `${truckInfo.playlistname}/${truckInfo.file}`;
   initAudio(src);
-});
+}
 
 //音频发生错误时
 function errorHandler() {
