@@ -106,7 +106,7 @@
             </div>
 
             <div data-testid="topbar-content-wrapper" class="flex-grow">
-              <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: computedRectY ? 1 : 0 }">
+              <div data-testid="topbar-content" class="flex items-center gap-4 transition-opacity duration-500" :style="{ opacity: storeComputedOfIsScrolledToPosition ? 1 : 0 }">
                 <div class="">
                   <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
                     <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
@@ -171,7 +171,7 @@ import { useRouter } from 'vue-router';
 import { throttle, debounce } from 'lodash';
 import { getLocal } from '/src/utills/localStorage.js';
 import { initNavScrollBar } from './initScrollbar.js';
-import { store, computedRectY } from './store.js';
+import { store, storeComputedOfIsScrolledToPosition } from './store.js';
 
 const router = useRouter();
 const playlists = getLocal('playlists');
@@ -236,7 +236,7 @@ function onMouseup() {
 }
 </script>
 
-<style>
+<style scoped>
 .playlist {
   --nav-w: 283px;
   --nav-pt: 24px;
@@ -248,7 +248,8 @@ function onMouseup() {
   overflow-x: hidden;
 }
 
-.os-scrollbar-vertical {
+
+:global(.os-scrollbar-vertical) {
   z-index: 10;
 }
 

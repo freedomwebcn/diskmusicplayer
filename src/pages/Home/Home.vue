@@ -136,6 +136,7 @@ function imgloaded(index) {
   --os-handle-bg: hsla(0, 0%, 100%, 0.3);
   --os-handle-bg-hover: hsla(0, 0%, 100%, 0.5);
   --os-handle-bg-active: hsla(0, 0%, 100%, 0.6);
+  --os-handle-min-size: 40px;
 }
 
 :global(.os-scrollbar-visible) {

@@ -32,7 +32,8 @@ export const store = reactive({
     this.scrollWrapperWidth = w + 'px';
   }
 });
-
-export const computedRectY = computed(() => {
-  return store.scrollTop >= 340;
+// store 的计算属性
+export const storeComputedOfIsScrolledToPosition = computed(() => {
+  // 380= 340+104-64
+  return store.scrollTop > 380
 });

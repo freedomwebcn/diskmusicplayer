@@ -11,7 +11,6 @@ export function reqTrackListData(playlistName) {
       if (resdata.code !== 200) {
         throw new Error(resdata);
       }
-
       data.value = resdata.data;
     } catch (err) {
       error.value = err;

@@ -24,6 +24,7 @@ export function initMainViewScrollBar(el, viewportel) {
         scroll(osInstance) {
           const { viewport } = osInstance.elements();
           const { scrollTop } = viewport; // get scroll offse
+          // console.log(scrollTop);
           store.setScrollTop(scrollTop);
         }
       }

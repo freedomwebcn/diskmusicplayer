@@ -67,12 +67,12 @@
             </div>
           </div>
         </div>
-        <div class="z-[2] mb-4 px-8" :style="computedRectY && style">
+        <div class="z-[2] mb-4 px-8" :style="storeComputedOfIsScrolledToPosition && style">
           <div ref="titleRef" class="ml-[-32px] mr-[-32px] h-9 px-8">
             <div
               class="grid h-9 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 border-0 border-b border-solid px-4 text-[#b3b3b3]"
               :style="{
-                'border-color': computedRectY ? 'transparent' : 'hsla(0,0%,100%,.1)'
+                'border-color': storeComputedOfIsScrolledToPosition ? 'transparent' : 'hsla(0,0%,100%,.1)'
               }"
             >
               <div class="flex items-center justify-end">#</div>
@@ -98,7 +98,7 @@
             </div>
           </div>
         </div>
-        <div v-if="computedRectY" class="mb-4 h-9 px-8"></div>
+        <div class="h-14" v-if="storeComputedOfIsScrolledToPosition"></div>
       </template>
 
       <template #default="{ item }">
@@ -180,7 +180,7 @@
         </div>
       </template>
       <template #after>
-        <div class="h-28"></div>
+        <div class="h-4"></div>
       </template>
     </RecycleScroller>
   </div>
@@ -190,7 +190,7 @@
 import { ref, watch, computed, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
-import { store, computedRectY } from './store.js';
+import { store, storeComputedOfIsScrolledToPosition } from './store.js';
 import { bus } from '/src/utills/eventbus.js';
 import { reqTrackListData } from './api.js';
 
@@ -208,17 +208,17 @@ function play(trackItem) {
 }
 
 let playStatus = ref(); //播放状态
-// 在事件总线注册一个事件，当歌曲暂停时触发
+
 bus.on('onBusEventOfPaused', (status) => (playStatus.value = status));
 bus.on('onBusEventOfPlay', (status) => (playStatus.value = !status));
-bus.on('onBusEventOfNextPlay', (currentTrack) => store.setCurrentPlayTrack(currentTrack.file));
+bus.on('onBusEventOfCurrentPlay', (currentTrack) => store.setCurrentPlayTrack(currentTrack.file));
 
 onBeforeUnmount(() => {
   log('页面卸载');
   // 页面卸载时清除事件
   bus.off('onBusEventOfPaused');
   bus.off('onBusEventOfPlay');
-  bus.off('onBusEventOfNextPlay');
+  bus.off('onBusEventOfCurrentPlay');
 });
 
 let trackListData = [];
@@ -259,7 +259,7 @@ function formatSongsTime(duration) {
 }
 </script>
 
-<style>
+<style scoped>
 .wrapper {
   width: 100%;
   height: 100%;
@@ -274,7 +274,11 @@ function formatSongsTime(duration) {
   height: 0;
 }
 .wrapper {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hover .row {
+  background: hsla(0, 0%, 100%, 0.1);
 }
 </style>

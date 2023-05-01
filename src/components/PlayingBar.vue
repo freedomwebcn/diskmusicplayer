@@ -21,7 +21,7 @@
             </div>
             <div class="mx-3.5 grid grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center gap-x-2">
               <div class="col-span-2 w-full justify-self-start text-[#fff]">
-                <div class="mask-image | relative mx-[-6px] overflow-hidden">
+                <div class="relative mx-[-6px] overflow-hidden mask-image">
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-[#fff] min-[768px]:text-sm">
@@ -33,7 +33,7 @@
               </div>
 
               <div class="col-span-2 w-full text-[rgb(179_179_179)]">
-                <div class="mask-image | relative mx-[-6px] overflow-hidden">
+                <div class="relative mx-[-6px] overflow-hidden mask-image">
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-xs">
@@ -53,7 +53,14 @@
           <div class="flex flex-col items-center justify-center" aria-label="播放器控制区域">
             <div class="mb-2.5 flex w-full flex-row flex-nowrap gap-4">
               <div class="flex flex-1 justify-end gap-2">
-                <button class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]" aria-label="开启随机播放">
+                <button
+                  class="shuffle_play | flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]"
+                  aria-label="开启随机播放"
+                  :style="colorStyle"
+                  :disabled="!currentPlayTruckListHasData"
+                  @click="handeShufflePlay"
+                  :class="{ shuffle_play_active: shufflePlay }"
+                >
                   <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path
                       d="M13.151.922a.75.75 0 1 0-1.06 1.06L13.109 3H11.16a3.75 3.75 0 0 0-2.873 1.34l-6.173 7.356A2.25 2.25 0 0 1 .39 12.5H0V14h.391a3.75 3.75 0 0 0 2.873-1.34l6.173-7.356a2.25 2.25 0 0 1 1.724-.804h1.947l-1.017 1.018a.75.75 0 0 0 1.06 1.06L15.98 3.75 13.15.922zM.391 3.5H0V2h.391c1.109 0 2.16.49 2.873 1.34L4.89 5.277l-.979 1.167-1.796-2.14A2.25 2.25 0 0 0 .39 3.5z"
@@ -63,15 +70,26 @@
                     ></path>
                   </svg>
                 </button>
-                <button class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]" aria-label="上一首">
+                <button
+                  class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)] hover:text-white"
+                  aria-label="上一首"
+                  :style="colorStyle"
+                  @click="playNextOrPrev(-1)"
+                  :disabled="!currentPlayTruckListHasData"
+                >
                   <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7h1.6z"></path>
                   </svg>
                 </button>
               </div>
               <!-- 播放与暂停按钮 -->
-              <button class="flex h-8 w-8 items-center justify-center rounded-full border-0 bg-[#fff]" @click="togglePlay">
-                <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" v-if="!playing">
+              <button
+                class="flex h-8 w-8 items-center justify-center rounded-full border-0 transition-all duration-[33ms] ease-[cubic-bezier(.3,0,0,1)] hover:scale-[1.06]"
+                :disabled="!currentPlayTruckListHasData"
+                @click="togglePlay"
+                :style="{ backgroundColor: !currentPlayTruckListHasData ? 'hsla(0,0%,100%,.3)' : '#fff' }"
+              >
+                <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" v-if="!playing && currentPlayTruckListHasData">
                   <path d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z"></path>
                 </svg>
                 <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" v-else>
@@ -82,14 +100,25 @@
               </button>
 
               <div class="flex flex-1 gap-2">
-                <button class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]" aria-label="下一首">
+                <button
+                  class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)] hover:text-white"
+                  aria-label="下一首"
+                  :style="colorStyle"
+                  @click="playNextOrPrev(1)"
+                  :disabled="!currentPlayTruckListHasData"
+                >
                   <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path
                       d="M12.7 1a.7.7 0 0 0-.7.7v5.15L2.05 1.107A.7.7 0 0 0 1 1.712v12.575a.7.7 0 0 0 1.05.607L12 9.149V14.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-1.6z"
                     ></path>
                   </svg>
                 </button>
-                <button class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]" aria-label="开启循环播放">
+                <button
+                  class="flex h-8 w-8 items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)] hover:text-white"
+                  aria-label="开启循环播放"
+                  :style="colorStyle"
+                  :disabled="!currentPlayTruckListHasData"
+                >
                   <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path
                       d="M0 4.75A3.75 3.75 0 0 1 3.75 1h8.5A3.75 3.75 0 0 1 16 4.75v5a3.75 3.75 0 0 1-3.75 3.75H9.81l1.018 1.018a.75.75 0 1 1-1.06 1.06L6.939 12.75l2.829-2.828a.75.75 0 1 1 1.06 1.06L9.811 12h2.439a2.25 2.25 0 0 0 2.25-2.25v-5a2.25 2.25 0 0 0-2.25-2.25h-8.5A2.25 2.25 0 0 0 1.5 4.75v5A2.25 2.25 0 0 0 3.75 12H5v1.5H3.75A3.75 3.75 0 0 1 0 9.75v-5z"
@@ -119,7 +148,8 @@
                     class="dot | absolute top-1/2 ml-[-6px] h-3 w-3 translate-y-[-50%] rounded-full bg-transparent group-hover:bg-white"
                     :style="{
                       left: progressBarTransform,
-                      backgroundColor: `${showBgColor ? 'white' : ''}`
+                      backgroundColor: `${showBgColor ? 'white' : ''}`,
+                      display: !currentPlayTruckListHasData ? 'none' : 'block'
                     }"
                   ></div>
                 </div>
@@ -141,42 +171,52 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, reactive, watch } from 'vue';
 import { bus } from '/src/utills/eventbus.js';
 
 let audio = null;
 let progressBarTransform = ref('0%');
 let playing = ref(false);
 let isAnimation = ref(false);
-let duration = ref('0:00');
-let currentTime = ref('0:00');
+let duration = ref('-:--');
+let currentTime = ref('-:--');
 let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
 let currentPlayTrackInfo = ref({});
+let shufflePlay = ref(false); //随机播放
 
 const { log } = console;
 onMounted(() => {
   // 在事件总线中注册一个播放音乐事件
   bus.on('onBusEventOfPlayTrack', onBusEventOfPlayTrack);
 });
+
 onBeforeUnmount(() => {
   // 页面卸载时 清除事件
   bus.off('onBusEventOfPlayTrack');
 });
 
-let currentPlayTruckList = [];
-let currentPlayId;
+let currentPlayTruckList = reactive([]);
+let currentPlayId = ref();
 let baseUrl = `http://127.0.0.1:5000/audio/`;
+
+const colorStyle = computed(() => {
+  return {
+    color: currentPlayTruckList.length <= 0 ? 'hsla(0,0%,100%,.3)' : ''
+  };
+});
+
+const currentPlayTruckListHasData = computed(() => {
+  return currentPlayTruckList.length > 0;
+});
 
 function onBusEventOfPlayTrack({ id, trackListData }) {
   console.log(id);
-  currentPlayId = id;
+  currentPlayId.value = id;
   currentPlayTruckList.length = 0;
   currentPlayTruckList.push(...trackListData.value);
-  currentPlayTrackInfo.value = currentPlayTruckList[id];
-  const src = baseUrl + `${currentPlayTruckList[id].playlistname}/${currentPlayTruckList[id].file}`;
-  initAudio(src);
 }
+
 function initAudio(src) {
   log(src);
   audio ? log('音频对象已存在，只需要更新音频地址') : log('正在初始化音频对象');
@@ -201,12 +241,7 @@ function oncanplay() {
 // 播放结束触发
 function playended() {
   log('播放结束，正在准备播放下一首');
-  currentPlayId >= currentPlayTruckList.length - 1 ? (currentPlayId = 0) : currentPlayId++;
-  currentPlayTrackInfo.value = currentPlayTruckList[currentPlayId];
-  const src = baseUrl + `${currentPlayTruckList[currentPlayId].playlistname}/${currentPlayTruckList[currentPlayId].file}`;
-  initAudio(src);
-  // 触发tracklist组件中的事件
-  bus.emit('onBusEventOfNextPlay', currentPlayTruckList[currentPlayId]);
+  currentPlayId.value >= currentPlayTruckList.length - 1 ? (currentPlayId.value = 0) : currentPlayId.value++;
 }
 
 // 切换播放状态
@@ -228,6 +263,44 @@ function paused() {
   isAnimation.value = false;
   bus.emit('onBusEventOfPaused', true); //触发tracklist组件中的事件
 }
+
+function playNextOrPrev(num) {
+  //-1 上一首 ，1 下一首
+  currentPlayId.value = (currentPlayId.value + num + currentPlayTruckList.length) % currentPlayTruckList.length;
+}
+
+// 保存原始播放列表
+let originalPlayList = [];
+// 处理随机播放事件
+function handeShufflePlay() {
+  shufflePlay.value = !shufflePlay.value;
+  if (shufflePlay.value) {
+    // 开启随机播放 复制原数组
+    originalPlayList = currentPlayTruckList.slice(); // 复制当前播放列表
+    shuffleArray(currentPlayTruckList);
+  } else {
+    // 关闭随机播放 恢复列表原始顺序
+    currentPlayTruckList.splice(0, currentPlayTruckList.length, ...originalPlayList); // 将原始播放列表插入回去
+    originalPlayList = [];
+  }
+}
+
+// 洗牌算法打乱播放列表
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// 监视当前播放ID 如果发生变化 播放新的音乐
+watch(currentPlayId, () => {
+  // 触发tracklist组件中的事件 通知更新当前歌曲播放的显示状态
+  bus.emit('onBusEventOfCurrentPlay', currentPlayTruckList[currentPlayId.value]);
+  currentPlayTrackInfo.value = currentPlayTruckList[currentPlayId.value];
+  const src = baseUrl + `${currentPlayTruckList[currentPlayId.value].playlistname}/${currentPlayTruckList[currentPlayId.value].file}`;
+  initAudio(src);
+});
 
 //音频发生错误时
 function errorHandler() {
@@ -256,6 +329,8 @@ function updateCurrentTime(t) {
 
 // 开始调节进度条
 function startProgressSlide(event) {
+  // 播放列表没有数据 禁止点击拖动进度条
+  if (!currentPlayTruckListHasData.value) return;
   slideProgress(event);
   document.addEventListener('mousemove', slideProgress);
   document.addEventListener('mouseup', stopProgressSlide);
@@ -322,7 +397,27 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.mask-image {
-  mask: linear-gradient(90deg, transparent 0, #000 6px, #000 calc(100% - 12px), transparent);
+.shuffle_play:hover {
+  color: #fff;
+}
+
+.shuffle_play_active {
+  position: relative;
+  color: #1db954;
+}
+.shuffle_play_active:hover {
+  color: #1ed760;
+}
+.shuffle_play_active::after {
+  background-color: currentcolor;
+  border-radius: 50%;
+  bottom: 0;
+  content: '';
+  display: block;
+  height: 4px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 4px;
 }
 </style>
