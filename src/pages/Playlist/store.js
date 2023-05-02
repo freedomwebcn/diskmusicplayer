@@ -8,9 +8,11 @@ export const store = reactive({
   coverMainColor: [],
   currentPlaylistInfo: {},
   currentPlayPlaylistName: '',
-  currentPlayTrack: '',
+  currentPlayTrackInfo: {},
   scrollWrapperWidth: '',
-
+  currentPlayId: 0,
+  currentPlayTrackList: [], //这个数据播放队列也需要
+  playStatus: false,
   setScrollTop(top) {
     this.scrollTop = top;
   },
@@ -25,8 +27,28 @@ export const store = reactive({
     this.currentPlayPlaylistName = name;
   },
 
-  setCurrentPlayTrack(name) {
-    this.currentPlayTrack = name;
+  setcurrentPlayTrackInfo(trackInfo) {
+    this.currentPlayTrackInfo = trackInfo;
+  },
+
+  setCurrentPlayTrackList(trackList) {
+    this.currentPlayTrackList = trackList;
+  },
+  // 点击播放列表播放音乐时
+  setCurrentPlayId({ id }) {
+    this.currentPlayId = id;
+  },
+  // 歌曲播放结束设置当前播放Id
+  setPlayendedCurrentPlayId() {
+    this.currentPlayId >= this.currentPlayTrackList.length - 1 ? (this.currentPlayId = 0) : this.currentPlayId++;
+  },
+  // 切换上一首 或 下一首时设置当前播放ID
+  setPlayNextOrPrevCurrentPlayId(num) {
+    this.currentPlayId = (this.currentPlayId + num + this.currentPlayTrackList.length) % this.currentPlayTrackList.length;
+  },
+  // 设置播放状态
+  setPlayStatus(status) {
+    this.playStatus = status;
   },
   setScrollWrapperWidth(w) {
     this.scrollWrapperWidth = w + 'px';
@@ -35,5 +57,5 @@ export const store = reactive({
 // store 的计算属性
 export const storeComputedOfIsScrolledToPosition = computed(() => {
   // 380= 340+104-64
-  return store.scrollTop > 380
+  return store.scrollTop > 380;
 });

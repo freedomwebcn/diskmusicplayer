@@ -109,10 +109,10 @@
                 <div class="relative h-4 min-h-[16px] w-4 min-w-[16px] text-[#b3b3b3]">
                   <!-- 序号 -->
                   <span
-                    v-if="store.currentPlayTrack != item.file || playStatus"
+                    v-if="store.currentPlayTrackInfo.file != item.file || !store.playStatus"
                     class="absolute right-[0.25em] top-[-4px] group-hover:hidden"
                     :style="{
-                      color: store.currentPlayTrack == item.file ? '#1ed760' : ''
+                      color: store.currentPlayTrackInfo.file == item.file ? '#1ed760' : ''
                     }"
                   >
                     {{ item.id }}</span
@@ -120,7 +120,7 @@
 
                   <!-- 曲目列表的播放按钮 -->
                   <button
-                    v-if="store.currentPlayTrack != item.file || playStatus"
+                    v-if="store.currentPlayTrackInfo.file != item.file || !store.playStatus"
                     class="flex h-full w-full items-center justify-center border-0 bg-transparent text-white opacity-0 group-hover:opacity-100"
                     tabindex="-1"
                   >
@@ -132,9 +132,9 @@
                   <!--  -->
                   <div class="relative h-4 w-4">
                     <!-- 播放中的图标 -->
-                    <img v-if="store.currentPlayTrack == item.file && !playStatus" src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" />
+                    <img v-if="store.currentPlayTrackInfo.file == item.file && store.playStatus" src="./equaliser-animated-green.f5eb96f2.gif" alt="" class="group-hover:hidden" />
                     <!-- 暂停 -->
-                    <button v-if="store.currentPlayTrack == item.file && !playStatus" class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停">
+                    <button v-if="store.currentPlayTrackInfo.file == item.file && store.playStatus" class="border-0 bg-transparent text-white opacity-0 group-hover:opacity-100" aria-label="暂停">
                       <svg class="h-4 w-4 fill-current" role="img" height="24" width="24" aria-hidden="true" viewBox="0 0 24 24" data-encore-id="icon">
                         <path
                           d="M5.7 3a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7H5.7zm10 0a.7.7 0 0 0-.7.7v16.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V3.7a.7.7 0 0 0-.7-.7h-2.6z"
@@ -160,7 +160,7 @@
                   <div
                     class="line-clamp-1 break-all text-white"
                     :style="{
-                      color: store.currentPlayTrack == item.file ? '#1ed760' : ''
+                      color: store.currentPlayTrackInfo.file == item.file ? '#1ed760' : ''
                     }"
                   >
                     {{ item.title }}
@@ -187,41 +187,18 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
 import { store, storeComputedOfIsScrolledToPosition } from './store.js';
 import { bus } from '/src/utills/eventbus.js';
 import { reqTrackListData } from './api.js';
 
-const { log } = console;
+// const { log } = console;
 
 let route = useRoute();
 
 initMainViewScrollBar('.wrapper', '.scroller'); //初始化滚动条
-
-
-function play(trackItem) {
-  store.setCurrentPlayTrack(trackItem.file);
-  store.setCurrentPlayPlaylistName(trackItem.playlistname);
-
-  // 触发PlayingBar组件中注册的事件
-  bus.emit('onBusEventOfPlayTrack', { id: trackItem.id - 1, trackListData });
-}
-
-let playStatus = ref(); //播放状态
-
-bus.on('onBusEventOfPaused', (status) => (playStatus.value = status));
-bus.on('onBusEventOfPlay', (status) => (playStatus.value = !status));
-bus.on('onBusEventOfCurrentPlay', (currentTrack) => store.setCurrentPlayTrack(currentTrack.file));
-
-onBeforeUnmount(() => {
-  log('页面卸载');
-  // 页面卸载时清除事件
-  bus.off('onBusEventOfPaused');
-  bus.off('onBusEventOfPlay');
-  bus.off('onBusEventOfCurrentPlay');
-});
 
 let trackListData = [];
 let showCover = ref(false);
@@ -238,6 +215,14 @@ watch(
   },
   { immediate: true }
 );
+
+function play(trackItem) {
+  store.setCurrentPlayPlaylistName(trackItem.playlistname);
+  store.setCurrentPlayTrackList([...trackListData.value]);
+  store.setCurrentPlayId({ id: trackItem.id - 1 });
+  // 触发PlayingBar组件中注册的事件
+  bus.emit('onBusEventOfPlayTrack');
+}
 
 const style = computed(() => {
   return {

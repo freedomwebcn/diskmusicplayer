@@ -26,7 +26,11 @@
                 <span class="line-clamp-1 break-all"> 统计 </span>
               </a>
             </li>
-
+            <li class="px-2">
+              <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
+                <span class="line-clamp-1 break-all"> 搜索 </span>
+              </a>
+            </li>
             <li class="px-2">
               <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
                 <span class="line-clamp-1 break-all"> 已点赞的歌曲 </span>
@@ -49,7 +53,8 @@
                     class="flex h-8 items-center px-6 text-sm text-[#b3b3b3] hover:text-white"
                     :style="{
                       color: store.currentPlaylistInfo.name == item.name ? '#fff' : ''
-                    }">
+                    }"
+                  >
                     <span class="line-clamp-1 flex-1 break-all">{{ item.name }}</span>
 
                     <div v-if="store.currentPlayPlaylistName == item.name" class="ml-2 h-3 w-3 shrink-0">
@@ -247,7 +252,6 @@ function onMouseup() {
   width: 100%;
   overflow-x: hidden;
 }
-
 
 :global(.os-scrollbar-vertical) {
   z-index: 10;

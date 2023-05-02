@@ -15,8 +15,8 @@
                 class="absolute h-full w-full"
                 draggable="false"
                 loading="eager"
-                :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(currentPlayTrackInfo.cover)}`"
-                v-if="currentPlayTrackInfo.cover"
+                :src="`http://127.0.0.1:5000/tracks_cover/${encodeURIComponent(store.currentPlayTrackInfo.cover)}`"
+                v-if="store.currentPlayTrackInfo.cover"
               />
             </div>
             <div class="mx-3.5 grid grid-cols-[auto_1fr] grid-rows-[auto_auto] items-center gap-x-2">
@@ -25,7 +25,7 @@
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-[#fff] min-[768px]:text-sm">
-                        <span> {{ currentPlayTrackInfo.title }}</span>
+                        <span> {{ store.currentPlayTrackInfo.title }}</span>
                       </div>
                     </div>
                   </div>
@@ -37,7 +37,7 @@
                   <div class="overflow-hidden">
                     <div class="flex w-fit whitespace-nowrap px-1.5 pr-3">
                       <div class="w-full text-xs">
-                        <span v-for="art in currentPlayTrackInfo.art" :key="art">
+                        <span v-for="art in store.currentPlayTrackInfo.art" :key="art">
                           {{ art }}
                         </span>
                       </div>
@@ -118,11 +118,19 @@
                   aria-label="开启循环播放"
                   :style="colorStyle"
                   :disabled="!currentPlayTruckListHasData"
+                  @click="handleLoopEvent"
+                  :class="{ 'on-loop': loopStatus }"
                 >
-                  <svg class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
+                  <svg v-if="!loopStatus" class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16">
                     <path
                       d="M0 4.75A3.75 3.75 0 0 1 3.75 1h8.5A3.75 3.75 0 0 1 16 4.75v5a3.75 3.75 0 0 1-3.75 3.75H9.81l1.018 1.018a.75.75 0 1 1-1.06 1.06L6.939 12.75l2.829-2.828a.75.75 0 1 1 1.06 1.06L9.811 12h2.439a2.25 2.25 0 0 0 2.25-2.25v-5a2.25 2.25 0 0 0-2.25-2.25h-8.5A2.25 2.25 0 0 0 1.5 4.75v5A2.25 2.25 0 0 0 3.75 12H5v1.5H3.75A3.75 3.75 0 0 1 0 9.75v-5z"
                     ></path>
+                  </svg>
+                  <svg v-else class="fill-[currentcolor]" role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon">
+                    <path
+                      d="M0 4.75A3.75 3.75 0 0 1 3.75 1h.75v1.5h-.75A2.25 2.25 0 0 0 1.5 4.75v5A2.25 2.25 0 0 0 3.75 12H5v1.5H3.75A3.75 3.75 0 0 1 0 9.75v-5zM12.25 2.5h-.75V1h.75A3.75 3.75 0 0 1 16 4.75v5a3.75 3.75 0 0 1-3.75 3.75H9.81l1.018 1.018a.75.75 0 1 1-1.06 1.06L6.939 12.75l2.829-2.828a.75.75 0 1 1 1.06 1.06L9.811 12h2.439a2.25 2.25 0 0 0 2.25-2.25v-5a2.25 2.25 0 0 0-2.25-2.25z"
+                    ></path>
+                    <path d="M9.12 8V1H7.787c-.128.72-.76 1.293-1.787 1.313V3.36h1.57V8h1.55z"></path>
                   </svg>
                 </button>
               </div>
@@ -171,51 +179,39 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, computed, reactive, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
 import { bus } from '/src/utills/eventbus.js';
+import { store } from '/src/pages/Playlist/store.js';
 
 let audio = null;
 let progressBarTransform = ref('0%');
 let playing = ref(false);
-let isAnimation = ref(false);
 let duration = ref('-:--');
 let currentTime = ref('-:--');
 let progressBarWrapperRef = ref(null);
 let showBgColor = ref(false);
-let currentPlayTrackInfo = ref({});
-let shufflePlayStatus = ref(false); //随机播放
+let shufflePlayStatus = ref(false); //随机播放状态
 // 保存原始播放列表
 let originalPlayList = [];
 
 const { log } = console;
-onMounted(() => {
-  // 在事件总线中注册一个播放音乐事件
-  bus.on('onBusEventOfPlayTrack', onBusEventOfPlayTrack);
-});
 
-onBeforeUnmount(() => {
-  // 页面卸载时 清除事件
-  bus.off('onBusEventOfPlayTrack');
-});
+onMounted(() => bus.on('onBusEventOfPlayTrack', onBusEventOfPlayTrack));
+onBeforeUnmount(() => bus.off('onBusEventOfPlayTrack'));
 
-let currentPlayTruckList = reactive([]);
-let currentPlayId = ref();
 let baseUrl = `http://127.0.0.1:5000/audio/`;
 
 const colorStyle = computed(() => {
   return {
-    color: currentPlayTruckList.length <= 0 ? 'hsla(0,0%,100%,.3)' : ''
+    color: store.currentPlayTrackList.length <= 0 ? 'hsla(0,0%,100%,.3)' : ''
   };
 });
 
-const currentPlayTruckListHasData = computed(() => currentPlayTruckList.length > 0);
+const currentPlayTruckListHasData = computed(() => store.currentPlayTrackList.length > 0);
 
-function onBusEventOfPlayTrack({ id, trackListData }) {
-  currentPlayTruckList.length = 0;
-  currentPlayTruckList.push(...trackListData.value);
-  currentPlayId.value = id;
-  playCurrentTrack(currentPlayTruckList[currentPlayId.value]); //在随机播放列表前播放
-  shufflePlayStatus.value && handeShufflePlay();
+function onBusEventOfPlayTrack() {
+  playCurrentTrack(store.currentPlayTrackList[store.currentPlayId]); //在随机播放列表前播放
+  shufflePlayStatus.value && handleShufflePlay();
 }
 
 function initAudio(src) {
@@ -229,7 +225,7 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.02;
+    audio.volume = 0.01;
   }
   audio.src = src;
 }
@@ -239,11 +235,13 @@ function oncanplay() {
   audio.play();
 }
 
-// 播放结束触发
+// 播放结束触发 (开启循环当前音乐后 不会触发这个事件)
 function playended() {
   log('播放结束，正在准备播放下一首');
-  currentPlayId.value >= currentPlayTruckList.length - 1 ? (currentPlayId.value = 0) : currentPlayId.value++;
-  playCurrentTrack(currentPlayTruckList[currentPlayId.value]);
+  store.setPlayendedCurrentPlayId();
+  setTimeout(() => {
+    playCurrentTrack(store.currentPlayTrackList[store.currentPlayId]);
+  }, 100);
 }
 
 // 切换播放状态
@@ -251,39 +249,47 @@ function togglePlay() {
   audio.paused ? audio.play() : audio.pause();
 }
 
+let isStartAnimationFrame = ref(false);
+
 // 处理播放事件
 function play() {
-  playing.value = true;
-  isAnimation.value = true;
-  bus.emit('onBusEventOfPlay', true); //触发tracklist组件中的事件总线注册的事件，通知及时更新播放状态
+  isStartAnimationFrame.value = playing.value = true;
+  log('play');
+  store.setPlayStatus(true);
   requestAnimationFrame(updatePlayProgress);
 }
 
 //处理暂停事件
 function paused() {
-  playing.value = false;
-  isAnimation.value = false;
-  bus.emit('onBusEventOfPaused', true); //触发tracklist组件中的事件
+  log('paused');
+  isStartAnimationFrame.value = playing.value = false;
+  store.setPlayStatus(false);
 }
 
 function playNextOrPrev(num) {
   //-1 上一首 ，1 下一首
-  currentPlayId.value = (currentPlayId.value + num + currentPlayTruckList.length) % currentPlayTruckList.length;
-  playCurrentTrack(currentPlayTruckList[currentPlayId.value]);
+  store.setPlayNextOrPrevCurrentPlayId(num);
+  playCurrentTrack(store.currentPlayTrackList[store.currentPlayId]);
 }
 
-watch(shufflePlayStatus, () => handeShufflePlay());
+let loopStatus = ref(false);
+//处理循环音乐事件
+const handleLoopEvent = () => (loopStatus.value = audio.loop = !audio.loop); //audio.loop 返回布尔值
+
+// 监听随机播放状态
+watch(shufflePlayStatus, () => handleShufflePlay());
 
 // 处理随机播放事件
-function handeShufflePlay() {
+function handleShufflePlay() {
   if (shufflePlayStatus.value) {
-    originalPlayList = currentPlayTruckList.slice();
-    shuffleArray(currentPlayTruckList);
+    originalPlayList = store.currentPlayTrackList.slice();
+    shuffleArray(store.currentPlayTrackList);
   } else {
-    const index = originalPlayList.findIndex((item) => item.id == currentPlayTrackInfo.value.id);
-    currentPlayId.value = index;
+    const index = originalPlayList.findIndex((item) => item.id == store.currentPlayTrackInfo.id);
+    log(index);
+    store.setCurrentPlayId({ id: index });
     // 关闭随机播放 恢复列表原始顺序
-    currentPlayTruckList.splice(0, currentPlayTruckList.length, ...originalPlayList); // 将原始播放列表插入回去
+    store.setCurrentPlayTrackList(originalPlayList);
     originalPlayList = [];
   }
 }
@@ -298,8 +304,8 @@ function shuffleArray(array) {
 
 // 播放当前音乐
 function playCurrentTrack(truckInfo) {
-  bus.emit('onBusEventOfCurrentPlay', truckInfo);
-  currentPlayTrackInfo.value = truckInfo;
+  log(truckInfo);
+  store.setcurrentPlayTrackInfo(truckInfo);
   const src = baseUrl + `${truckInfo.playlistname}/${truckInfo.file}`;
   initAudio(src);
 }
@@ -316,7 +322,7 @@ function updatePlayProgress() {
   const progressPercentage = audio.currentTime / audio.duration;
   progressBarTransform.value = `${progressPercentage * 100}%`;
   updateCurrentTime(audio.currentTime);
-  isAnimation.value && requestAnimationFrame(updatePlayProgress);
+  isStartAnimationFrame.value && requestAnimationFrame(updatePlayProgress);
 }
 
 // 音频元数据下载完毕后 更新时间
@@ -350,21 +356,19 @@ function getPercentage(event, element) {
 
 // 移动进度条
 function slideProgress(event) {
-  showBgColor.value = !(isAnimation.value = false);
+  showBgColor.value = !(isStartAnimationFrame.value = false);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
   progressBarTransform.value = `${percentage * 100}%`;
   const t = percentage * audio.duration;
-  updateCurrentTime(t);
+  updateCurrentTime(t); //调节进度条期间实时更新当前显示时间
 }
 
 // 停止调节进度条
 function stopProgressSlide(event) {
-  showBgColor.value = !(isAnimation.value = true);
+  showBgColor.value = !(isStartAnimationFrame.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
-  audio.currentTime = audio.duration * percentage;
-  if (!audio.paused) {
-    requestAnimationFrame(updatePlayProgress);
-  }
+  audio.currentTime = audio.duration * percentage; //在停止调节进度条后更新当前播放时间 防止在调节进度条期间音乐不停地更新播放
+  requestAnimationFrame(updatePlayProgress);
   document.removeEventListener('mousemove', slideProgress);
   document.removeEventListener('mouseup', stopProgressSlide);
 }
@@ -377,25 +381,6 @@ function formatSongsTime(duration) {
     .padStart(2, '0');
   return `${minute}:${second}`;
 }
-
-const stopAudio = () => {
-  if (audio) {
-    audio.pause();
-    audio.removeEventListener('play', play);
-    audio.removeEventListener('pause', paused);
-    audio.removeEventListener('loadedmetadata', loadedmetadata);
-    audio.removeEventListener('canplay', oncanplay);
-    audio.removeEventListener('error', errorHandler);
-    audio.src = '';
-    audio.load();
-    audio = null;
-  }
-};
-
-// 页面卸载前清除事件监听
-onBeforeUnmount(() => {
-  stopAudio();
-});
 </script>
 
 <style scoped>
@@ -403,14 +388,17 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
-.shuffle_play_active {
+.shuffle_play_active,
+.on-loop {
   position: relative;
   color: #1db954;
 }
-.shuffle_play_active:hover {
+.shuffle_play_active:hover,
+.on-loop:hover {
   color: #1ed760;
 }
-.shuffle_play_active::after {
+.shuffle_play_active::after,
+.on-loop::after {
   background-color: currentcolor;
   border-radius: 50%;
   bottom: 0;
