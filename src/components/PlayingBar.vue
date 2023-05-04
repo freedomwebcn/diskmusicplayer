@@ -171,7 +171,24 @@
         </div>
 
         <div class="flex w-[30%] justify-end">
-          <div class="flex grow justify-end">1</div>
+          <div class="flex grow justify-end">
+            <button
+              class="relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-2 text-[#a7a7a7]"
+              data-testid="lyrics-button"
+              data-active="false"
+              aria-label="歌词"
+              aria-expanded="false"
+              @click="$router.push('/playlist/lrc')"
+            >
+              <span aria-hidden="true" class="flex">
+                <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
+                  <path
+                    d="M13.426 2.574a2.831 2.831 0 0 0-4.797 1.55l3.247 3.247a2.831 2.831 0 0 0 1.55-4.797zM10.5 8.118l-2.619-2.62A63303.13 63303.13 0 0 0 4.74 9.075L2.065 12.12a1.287 1.287 0 0 0 1.816 1.816l3.06-2.688 3.56-3.129zM7.12 4.094a4.331 4.331 0 1 1 4.786 4.786l-3.974 3.493-3.06 2.689a2.787 2.787 0 0 1-3.933-3.933l2.676-3.045 3.505-3.99z"
+                  ></path>
+                </svg>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </footer>
@@ -225,7 +242,7 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.01;
+    audio.volume = 0.05;
   }
   audio.src = src;
 }
@@ -238,7 +255,7 @@ function oncanplay() {
 // 播放结束触发 (开启循环当前音乐后 不会触发这个事件)
 function playended() {
   log('播放结束，正在准备播放下一首');
-  store.setPlayendedCurrentPlayId();
+  store.setPlayendedCurrentPlayId(); //设置播放Id
   setTimeout(() => {
     playCurrentTrack(store.currentPlayTrackList[store.currentPlayId]);
   }, 100);
@@ -282,13 +299,14 @@ watch(shufflePlayStatus, () => handleShufflePlay());
 // 处理随机播放事件
 function handleShufflePlay() {
   if (shufflePlayStatus.value) {
-    originalPlayList = store.currentPlayTrackList.slice();
+    originalPlayList = store.currentPlayTrackList.slice(); //复制原始播放列表
     shuffleArray(store.currentPlayTrackList);
   } else {
+    // 在关闭随机播放时，找到当前播放音乐在原始列表中的位置
     const index = originalPlayList.findIndex((item) => item.id == store.currentPlayTrackInfo.id);
     log(index);
-    store.setCurrentPlayId({ id: index });
-    // 关闭随机播放 恢复列表原始顺序
+    store.setCurrentPlayId({ id: index }); //保存当前播放音乐在原始列表中的位置
+    // 恢复列表原始顺序
     store.setCurrentPlayTrackList(originalPlayList);
     originalPlayList = [];
   }
@@ -305,7 +323,7 @@ function shuffleArray(array) {
 // 播放当前音乐
 function playCurrentTrack(truckInfo) {
   log(truckInfo);
-  store.setcurrentPlayTrackInfo(truckInfo);
+  store.setcurrentPlayTrackInfo(truckInfo); //保存当前播放曲目详情
   const src = baseUrl + `${truckInfo.playlistname}/${truckInfo.file}`;
   initAudio(src);
 }

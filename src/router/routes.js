@@ -2,6 +2,7 @@ import Home from '../pages/Home/Home.vue';
 import Playlist from '../pages/Playlist/Playlist.vue';
 import TrackList from '../pages/Playlist/TrackList.vue';
 
+
 const routes = [
   {
     path: '/',
@@ -18,7 +19,10 @@ const routes = [
     path: '/playlist/:name',
     name: 'Playlist',
     component: Playlist,
-    children: [{ path: '', name: 'tracklist', component: TrackList }]
+    children: [
+      { path: '', name: 'tracklist', component: TrackList },
+   
+    ]
   }
 ];
 

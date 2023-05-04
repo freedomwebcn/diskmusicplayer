@@ -31,11 +31,13 @@
                 <span class="line-clamp-1 break-all"> 搜索 </span>
               </a>
             </li>
+          
             <li class="px-2">
               <a class="flex h-10 items-center gap-4 px-4 text-[#b3b3b3] no-underline transition-[color] duration-200 ease-linear hover:text-white">
                 <span class="line-clamp-1 break-all"> 已点赞的歌曲 </span>
               </a>
             </li>
+            
           </ul>
 
           <!-- scroll start -->
@@ -145,12 +147,6 @@
           </header>
         </div>
         <!-- header end -->
-        <!-- <router-view v-slot="{ Component }">
-          <KeepAlive :max="3">
-            <component :is="Component" :key="$route.fullPath" />
-          </KeepAlive>
-        </router-view> -->
-
         <router-view></router-view>
 
         <!-- <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
