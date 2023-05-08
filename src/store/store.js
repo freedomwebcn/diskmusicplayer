@@ -13,6 +13,8 @@ export const store = reactive({
   currentPlayId: 0,
   currentPlayTrackList: [], //这个数据播放队列也需要
   playStatus: false,
+  currentTime: 0, //音频的当前播放时间
+
   setScrollTop(top) {
     this.scrollTop = top;
   },
@@ -49,6 +51,10 @@ export const store = reactive({
   // 设置播放状态
   setPlayStatus(status) {
     this.playStatus = status;
+  },
+  //设置音频当前播放时间
+  setCurrentTime(time) {
+    this.currentTime = time;
   },
   setScrollWrapperWidth(w) {
     this.scrollWrapperWidth = w + 'px';

@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-0 h-[90px] w-full">
+  <div class="h-[90px] w-full">
     <footer class="h-full min-w-[620px] border-0 border-t border-solid border-[#282828] bg-[#181818]">
       <div class="flex h-full items-center justify-between px-4">
         <!-- 左侧歌曲信息模块 -->
@@ -178,7 +178,7 @@
               data-active="false"
               aria-label="歌词"
               aria-expanded="false"
-              @click="$router.push('/playlist/lrc')"
+              @click="goBackOrToLrcRoute"
             >
               <span aria-hidden="true" class="flex">
                 <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
@@ -197,9 +197,12 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { bus } from '/src/utills/eventbus.js';
-import { store } from '/src/pages/Playlist/store.js';
+import { store } from '/src/store/store.js';
 
+let route = useRoute();
+let router = useRouter();
 let audio = null;
 let progressBarTransform = ref('0%');
 let playing = ref(false);
@@ -238,6 +241,7 @@ function initAudio(src) {
     audio = new Audio(src);
     audio.addEventListener('play', play);
     audio.addEventListener('pause', paused);
+    audio.addEventListener('timeupdate', timeupdate);
     audio.addEventListener('loadedmetadata', loadedmetadata);
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
@@ -250,6 +254,11 @@ function initAudio(src) {
 function oncanplay() {
   log('可以播放了');
   audio.play();
+}
+
+function timeupdate() {
+  store.setCurrentTime(audio.currentTime);
+  // console.log(audio.currentTime);
 }
 
 // 播放结束触发 (开启循环当前音乐后 不会触发这个事件)
@@ -385,10 +394,22 @@ function slideProgress(event) {
 function stopProgressSlide(event) {
   showBgColor.value = !(isStartAnimationFrame.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
-  audio.currentTime = audio.duration * percentage; //在停止调节进度条后更新当前播放时间 防止在调节进度条期间音乐不停地更新播放
+  audio.currentTime = audio.duration * percentage; //在停止调节进度条后更新当前播放进度 防止在调节进度条期间音乐不停地更新播放
   requestAnimationFrame(updatePlayProgress);
   document.removeEventListener('mousemove', slideProgress);
   document.removeEventListener('mouseup', stopProgressSlide);
+}
+
+
+function goBackOrToLrcRoute() {
+  const targetRoutePath = '/lrc'; // 目标路由路径
+  if (route.path === targetRoutePath) {
+    // 当前路由为目标路由，执行页面返回操作
+    router.go(-1);
+  } else {
+    // 当前路由不是目标路由，跳转到目标路由
+    router.push(targetRoutePath);
+  }
 }
 
 // 格式化时间

@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper mt-[-64px]">
+  <div class="wrapper relative">
     <RecycleScroller class="scroller" :items="trackListData" :item-size="56" key-field="id">
       <template #before>
         <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
@@ -190,7 +190,8 @@
 import { ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
-import { store, storeComputedOfIsScrolledToPosition } from './store.js';
+import { store,storeComputedOfIsScrolledToPosition } from '/src/store/store.js';
+
 import { bus } from '/src/utills/eventbus.js';
 import { reqTrackListData } from './api.js';
 

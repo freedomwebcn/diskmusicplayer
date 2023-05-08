@@ -1,8 +1,8 @@
 import { ref, onMounted } from 'vue';
 import 'overlayscrollbars/overlayscrollbars.css';
 import { OverlayScrollbars } from 'overlayscrollbars';
+import { store } from '/src/store/store.js';
 
-import { store } from './store.js';
 export function initMainViewScrollBar(el, viewportel) {
   let instance = ref(null);
   onMounted(() => {
@@ -36,12 +36,17 @@ export function initMainViewScrollBar(el, viewportel) {
   };
 }
 export function initNavScrollBar(el) {
+  let instance = ref(null);
+
   onMounted(() => {
-    OverlayScrollbars(document.querySelector(el), {
+    instance.value = OverlayScrollbars(document.querySelector(el), {
       scrollbars: {
         autoHide: 'leave',
-        theme: 'os-theme-custom'
+        theme: 'os-theme-custom',
+    
       }
     });
   });
+
+  return { instance };
 }

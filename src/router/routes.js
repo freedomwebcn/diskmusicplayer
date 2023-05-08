@@ -1,28 +1,21 @@
-import Home from '../pages/Home/Home.vue';
-import Playlist from '../pages/Playlist/Playlist.vue';
-import TrackList from '../pages/Playlist/TrackList.vue';
-
+import TrackList from '../pages/Home/TrackList.vue';
+import Lrc from '../pages/Home/Lrc.vue';
 
 const routes = [
-  {
-    path: '/',
-    redirect: {
-      name: 'Home'
-    }
-  },
-  {
-    path: '/home',
-    name: 'Home',
-    component: Home
-  },
+  // {
+  //   path: '/',
+  //   name: 'Playlist',
+  //   component: Playlist
+  // }
   {
     path: '/playlist/:name',
-    name: 'Playlist',
-    component: Playlist,
-    children: [
-      { path: '', name: 'tracklist', component: TrackList },
-   
-    ]
+    name: 'tracklist',
+    component: TrackList
+  },
+  {
+    path: '/lrc',
+    name: 'lrc',
+    component:Lrc
   }
 ];
 

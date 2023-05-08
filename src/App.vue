@@ -1,9 +1,10 @@
 <template>
-  <router-view></router-view>
-  <PlayingBar></PlayingBar>
+  <div class="w-full h-full">
+    <Home> </Home>
+  </div>
 </template>
 
 <script setup>
-import PlayingBar from './components/PlayingBar.vue';
+import Home from './pages/Home/Home.vue';
 </script>
 
