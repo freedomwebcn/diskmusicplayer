@@ -112,6 +112,7 @@ function updateCurrentLyric(time) {
 let saveIndex = 0;
 // 滚动歌词
 function scrollLyric(index) {
+  // 避免多次点击同一行
   if (index == saveIndex) return;
   // 使滚动歌词居中
   const top = lyricLineRef.value[index].offsetTop - lrcWrapperRef.value.offsetHeight / 2 + lyricLineRefHeight.value / 2;
@@ -119,7 +120,10 @@ function scrollLyric(index) {
   const { scrollTop } = viewport;
   // 根据store的scrollLRCstatus状态 决定是否要执行scrollTo
   if (!store.scrollLRCstatus) {
-    // 当前歌词行的offsetTop大于滚动值加可视区域高 说明当前元素在可视区域底部外面 或者 居中值top小于滚动值
+    /* 
+      当前歌词行的offsetTop大于滚动值加可视区域高 说明当前元素在可视区域底部外 或者 当前元素的居中值top小于滚动值 说明当前元素在可视区域高 / 2 的上半部分
+      满足以上条件都需要阻止scrollTo事件
+    */
     if (lyricLineRef.value[index].offsetTop > scrollTop + lrcWrapperRef.value.offsetHeight || top < scrollTop) {
       saveIndex = index;
       return;
