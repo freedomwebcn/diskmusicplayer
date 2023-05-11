@@ -394,6 +394,7 @@ function slideProgress(event) {
 function stopProgressSlide(event) {
   showBgColor.value = !(isStartAnimationFrame.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
+  store.seScrollLRCstatus(true)
   audio.currentTime = audio.duration * percentage; //在停止调节进度条后更新当前播放进度 防止在调节进度条期间音乐不停地更新播放
   requestAnimationFrame(updatePlayProgress);
   document.removeEventListener('mousemove', slideProgress);

@@ -24,7 +24,7 @@
 import { reactive, watch, ref, nextTick } from 'vue';
 import { store } from '/src/store/store.js';
 import { initNavScrollBar } from './initScrollbar.js';
-
+// onMounted
 let lyricData = reactive([]);
 const lyricLineRef = ref(null);
 const lyricLineRefHeight = ref();
@@ -32,11 +32,19 @@ const lrcWrapperRef = ref(null);
 
 let { instance } = initNavScrollBar('.lrc-wrapper');
 
+let scrollLrcStatus = ref(true);
+
+// onMounted(() => {
+//   // lrcWrapperRef.value.addEventListener('wheel', () => {
+//   //   scrollLrcStatus.value = false;
+//   // });
+// });
+
 watch(
   () => store.currentTime,
   (newTime) => {
     updateCurrentLyric(newTime);
-    console.log(newTime);
+    // console.log(newTime);
   }
 );
 
@@ -98,20 +106,29 @@ let currentLyricIndex = ref();
 //更新当前歌词
 function updateCurrentLyric(time) {
   currentLyricIndex.value = getCurrentLyricIndex(time);
-  scrollLyric(currentLyricIndex.value);
+  scrollLrcStatus.value && scrollLyric(currentLyricIndex.value);
 }
 
 let saveIndex = 0;
-
+// 滚动歌词
 function scrollLyric(index) {
+  if (index == saveIndex) return;
   // 使滚动歌词居中
   const top = lyricLineRef.value[index].offsetTop - lrcWrapperRef.value.offsetHeight / 2 + lyricLineRefHeight.value / 2;
   const { viewport } = instance.value.elements();
-  // const { scrollTop } = viewport;
-  // 当前歌词行的前两行或后两行添加平滑滚动
-  const shouldSmoothScroll = index == saveIndex - 2 || index == saveIndex - 1 || index == saveIndex + 2 || index == saveIndex + 1;
-  viewport.scrollTo({ top, behavior: shouldSmoothScroll ? 'smooth' : undefined });
+  const { scrollTop } = viewport;
+  // 根据store的scrollLRCstatus状态 决定是否要执行scrollTo
+  if (!store.scrollLRCstatus) {
+    // 当前歌词行的offsetTop大于滚动值加可视区域高 说明当前元素在可视区域底部外面 或者 居中值top小于滚动值
+    if (lyricLineRef.value[index].offsetTop > scrollTop + lrcWrapperRef.value.offsetHeight || top < scrollTop) {
+      saveIndex = index;
+      return;
+    }
+  }
+  // 当前歌词行的前两行和后两行添加平稳滚动
+  viewport.scrollTo({ top, behavior: Math.abs(index - saveIndex) <= 2 ? 'smooth' : 'instant' });
   saveIndex = index;
+  store.seScrollLRCstatus(false);
 }
 </script>
 

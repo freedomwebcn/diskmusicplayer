@@ -14,6 +14,7 @@ export const store = reactive({
   currentPlayTrackList: [], //这个数据播放队列也需要
   playStatus: false,
   currentTime: 0, //音频的当前播放时间
+  scrollLRCstatus: false, //歌词滚动状态 （点击音频进度条或者点击歌词时更新为true）
 
   setScrollTop(top) {
     this.scrollTop = top;
@@ -55,6 +56,10 @@ export const store = reactive({
   //设置音频当前播放时间
   setCurrentTime(time) {
     this.currentTime = time;
+  },
+  // 设置滚动歌词状态
+  seScrollLRCstatus(status) {
+    this.scrollLRCstatus = status;
   },
   setScrollWrapperWidth(w) {
     this.scrollWrapperWidth = w + 'px';
