@@ -17,6 +17,7 @@ export const store = reactive({
   scrollLRCstatus: false, //歌词滚动状态 （点击音频进度条或者点击歌词时更新为true）
 
   setScrollTop(top) {
+    console.log("diaoyongle ");
     this.scrollTop = top;
   },
 

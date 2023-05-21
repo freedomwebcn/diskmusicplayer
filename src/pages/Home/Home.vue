@@ -10,6 +10,7 @@
               opacity: scrollPositionRatio,
               backgroundColor: `rgb(${store.coverMainColor})`
             }"
+            v-if="route.path != '/lrc'"
           >
             <div class="h-full bg-[rgba(0,0,0,.6)]"></div>
           </div>
@@ -28,7 +29,7 @@
 
           <div data-testid="topbar-content-wrapper" class="pointer-events-auto flex-grow">
             <Transition name="fade">
-              <div data-testid="topbar-content" class="flex items-center gap-4" v-if="storeComputedOfIsScrolledToPosition">
+              <div data-testid="topbar-content" class="flex items-center gap-4" v-if="storeComputedOfIsScrolledToPosition && route.path != '/lrc'">
                 <div>
                   <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
                     <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
@@ -150,7 +151,13 @@
 
       <!-- main View start-->
       <div ref="scrollwrapperRef" class="col-start-2 col-end-3 row-start-2 row-end-3 h-full w-full overflow-hidden">
-        <router-view></router-view>
+        <!-- <router-view></router-view> -->
+
+        <router-view v-slot="{ Component }">
+          <KeepAlive :max="3">
+            <component :is="Component" :key="$route.fullPath" />
+          </KeepAlive>
+        </router-view>
         <!-- <div class="absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center text-white" v-show="!truckList.length">
           <div class="HKamyJi9H31s99erfVyG">
             <svg xmlns="http://www.w3.org/2000/svg" height="12px" width="56px" x="0px" y="0px" viewBox="0 0 1 100" xml:space="preserve" data-testid="loadingIcon">
@@ -175,7 +182,7 @@
 
 <script setup>
 import { watch, ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 import { throttle, debounce } from 'lodash';
 import { getLocal } from '/src/utills/localStorage.js';
@@ -185,6 +192,8 @@ import { store, storeComputedOfIsScrolledToPosition } from '/src/store/store.js'
 import NowPlay from '/src/components/NowPlay.vue';
 
 const router = useRouter();
+const route = useRoute();
+
 const playlists = getLocal('playlists');
 let scrollPositionRatio = ref(0);
 const navBarRef = ref(null);

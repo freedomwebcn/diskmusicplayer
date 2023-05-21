@@ -1,5 +1,5 @@
 <template>
-  <div ref="lrcWrapperRef" class="lrc-wrapper h-full w-full text-white">
+  <div ref="lrcWrapperRef" class="lrc-wrapper h-full w-full text-white" @mouseenter="onMouseenter" @mouseleave="onMouseleave">
     <div class="grid h-full w-full bg-[rgb(104,122,122)]">
       <div class="mt-16 grid w-full justify-center bg-[rgb(104,122,122)] text-5xl">
         <div class="mx-36 font-bold leading-[1.5em] text-black">
@@ -21,24 +21,18 @@
   </div>
 </template>
 <script setup>
-import { reactive, watch, ref, nextTick } from 'vue';
-import { store } from '/src/store/store.js';
+import { reactive, watch, ref } from 'vue';
+import { store } from '@/store/store.js';
 import { initNavScrollBar } from './initScrollbar.js';
-// onMounted
+// console.log(store);
 let lyricData = reactive([]);
 const lyricLineRef = ref(null);
-const lyricLineRefHeight = ref();
+
 const lrcWrapperRef = ref(null);
 
 let { instance } = initNavScrollBar('.lrc-wrapper');
 
 let scrollLrcStatus = ref(true);
-
-// onMounted(() => {
-//   // lrcWrapperRef.value.addEventListener('wheel', () => {
-//   //   scrollLrcStatus.value = false;
-//   // });
-// });
 
 watch(
   () => store.currentTime,
@@ -58,9 +52,6 @@ fetch('王力宏 - 我们的歌.lrc')
   .then((data) => {
     // console.log(data);
     lyricData.push(...parseLyric(data));
-    nextTick(() => {
-      lyricLineRefHeight.value = lyricLineRef.value[0].offsetHeight;
-    });
 
     // console.log(lyricData);
   })
@@ -109,13 +100,22 @@ function updateCurrentLyric(time) {
   scrollLrcStatus.value && scrollLyric(currentLyricIndex.value);
 }
 
+let mouseenterStatus = false;
 let saveIndex = 0;
 // 滚动歌词
 function scrollLyric(index) {
   // 避免多次点击同一行
   if (index == saveIndex) return;
+  if (!mouseenterStatus) {
+    instance.value.options({
+      scrollbars: {
+        visibility: 'hidden' //滚动歌词时 隐藏滚动条
+      }
+    });
+  }
+
   // 使滚动歌词居中
-  const top = lyricLineRef.value[index].offsetTop - lrcWrapperRef.value.offsetHeight / 2 + lyricLineRefHeight.value / 2;
+  const top = lyricLineRef.value[index].offsetTop - lrcWrapperRef.value.offsetHeight / 2 + lyricLineRef.value[index].clientHeight / 2;
   const { viewport } = instance.value.elements();
   const { scrollTop } = viewport;
   // 根据store的scrollLRCstatus状态 决定是否要执行scrollTo
@@ -134,6 +134,17 @@ function scrollLyric(index) {
   saveIndex = index;
   store.seScrollLRCstatus(false);
 }
+
+function onMouseenter() {
+  mouseenterStatus = true;
+  instance.value.options({
+    scrollbars: {
+      visibility: 'auto'
+    }
+  });
+}
+
+const onMouseleave = () => (mouseenterStatus = false);
 </script>
 
 <style scoped>

@@ -8,7 +8,7 @@
           <div class="mr-6 flex h-[192px] w-[192px] min-w-[192px] self-end xl:h-[232px] xl:w-[232px] xl:min-w-[232px]">
             <div class="relative flex h-[inherit]">
               <div class="h-full w-full" draggable="false">
-                <img v-show="showCover" class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="store.currentPlaylistInfo.cover" @load="coverLoaded" />
+                <img v-show="showPlaylistCover" class="h-full w-full object-cover object-center" draggable="false" loading="eager" :src="store.currentPlaylistInfo.cover" @load="coverLoaded" />
               </div>
             </div>
           </div>
@@ -187,35 +187,63 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onActivated, nextTick } from 'vue';
+import { useRoute, onBeforeRouteLeave } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
-import { store,storeComputedOfIsScrolledToPosition } from '/src/store/store.js';
+import { store, storeComputedOfIsScrolledToPosition } from '/src/store/store.js';
 
 import { bus } from '/src/utills/eventbus.js';
 import { reqTrackListData } from './api.js';
 
-// const { log } = console;
-
 let route = useRoute();
-
-initMainViewScrollBar('.wrapper', '.scroller'); //初始化滚动条
-
+let { instance } = initMainViewScrollBar('.wrapper', '.scroller'); //初始化滚动条
 let trackListData = [];
-let showCover = ref(false);
+let showPlaylistCover = ref(false);
+let routeToPath = '';
 
-watch(
-  () => route.params.name,
-  () => {
-    const { data } = reqTrackListData(route.params.name);
-    console.log(data);
-    trackListData = data;
-    showCover.value = false;
-    store.setCurrentPlaylistInfo(route.params);
-    console.log('watch');
-  },
-  { immediate: true }
-);
+onActivated(() => {
+  scrollPage();
+  store.setCurrentPlaylistInfo(route.params);
+});
+
+async function scrollPage() {
+  console.log(routeToPath);
+  await nextTick();
+  const { viewport } = instance.value.elements();
+  if (routeToPath.includes('/lrc')) {
+    viewport.scrollTo({ top: store.scrollTop });
+    routeToPath = '';
+  } else {
+    viewport.scrollTo({ top: 0 });
+    store.setScrollTop(0); //scrollTo事件不会触发在初始化滚动条时配置项中添加的scroll事件 需要手动置成初始值
+  }
+}
+
+onBeforeRouteLeave((to) => {
+  routeToPath = to.fullPath;
+});
+
+// async function reqdata() {
+//   try {
+//     const res = await fetch(`http://127.0.0.1:5000/get_playlist_track/${route.params.name}`);
+//     const resdata = await res.json();
+//     if (resdata.code !== 200) {
+//       throw new Error(resdata);
+//     }
+//     trackListData.value = resdata.data;
+//   } catch (err) {
+//     console.log(err);
+//     // error.value = err;
+//     // console.log(error);
+//   }
+// }
+// reqdata();
+fetchData();
+function fetchData() {
+  const { data } = reqTrackListData(route.params.name);
+  trackListData = data;
+  showPlaylistCover.value = false;
+}
 
 function play(trackItem) {
   store.setCurrentPlayPlaylistName(trackItem.playlistname);
@@ -236,7 +264,7 @@ const style = computed(() => {
   };
 });
 
-const coverLoaded = () => (showCover.value = true);
+const coverLoaded = () => (showPlaylistCover.value = true);
 
 function formatSongsTime(duration) {
   let minute = Math.floor(duration / 60);
@@ -258,12 +286,14 @@ function formatSongsTime(duration) {
 }
 
 .wrapper ::-webkit-scrollbar {
+  /* WebKit */
   width: 0;
   height: 0;
 }
+
 .wrapper {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
 .hover .row {
