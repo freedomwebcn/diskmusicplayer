@@ -17,7 +17,6 @@ export const store = reactive({
   scrollLRCstatus: false, //歌词滚动状态 （点击音频进度条或者点击歌词时更新为true）
 
   setScrollTop(top) {
-    console.log("diaoyongle ");
     this.scrollTop = top;
   },
 
@@ -67,7 +66,7 @@ export const store = reactive({
   }
 });
 // store 的计算属性
-export const storeComputedOfIsScrolledToPosition = computed(() => {
+export const computedOfIsScrolledToPosition = computed(() => {
   // 380= 340+104-64
   return store.scrollTop > 380;
 });

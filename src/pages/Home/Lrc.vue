@@ -23,14 +23,14 @@
 <script setup>
 import { reactive, watch, ref } from 'vue';
 import { store } from '@/store/store.js';
-import { initNavScrollBar } from './initScrollbar.js';
+import { initScrollBar } from './initScrollbar.js';
 // console.log(store);
 let lyricData = reactive([]);
 const lyricLineRef = ref(null);
 
 const lrcWrapperRef = ref(null);
 
-let { instance } = initNavScrollBar('.lrc-wrapper');
+let { instance } = initScrollBar('.lrc-wrapper');
 
 let scrollLrcStatus = ref(true);
 

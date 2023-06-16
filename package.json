@@ -14,7 +14,7 @@
     "clusterize.js": "^0.19.0",
     "lodash": "^4.17.21",
     "mitt": "^3.0.0",
-    "overlayscrollbars": "^2.1.1",
+    "overlayscrollbars": "^2.2.0",
     "overlayscrollbars-vue": "^0.5.1",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",

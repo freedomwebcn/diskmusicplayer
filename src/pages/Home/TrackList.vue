@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper relative">
+  <div class="wrapper relative" @mouseenter="onMouseenter">
     <RecycleScroller class="scroller" :items="trackListData" :item-size="56" key-field="id">
       <template #before>
         <div class="relative flex h-[30vh] max-h-[400px] min-h-[340px] bg-orange-500 px-8 pb-6">
@@ -67,12 +67,12 @@
             </div>
           </div>
         </div>
-        <div class="z-[2] mb-4 px-8" :style="storeComputedOfIsScrolledToPosition && style">
-          <div ref="titleRef" class="ml-[-32px] mr-[-32px] h-9 px-8">
+        <div class="z-[2] mb-4 px-8" :style="computedOfIsScrolledToPosition && style">
+          <div class="ml-[-32px] mr-[-32px] h-9 px-8">
             <div
               class="grid h-9 grid-cols-[16px_4fr_2fr_minmax(120px,1fr)] gap-4 border-0 border-b border-solid px-4 text-[#b3b3b3]"
               :style="{
-                'border-color': storeComputedOfIsScrolledToPosition ? 'transparent' : 'hsla(0,0%,100%,.1)'
+                'border-color': computedOfIsScrolledToPosition ? 'transparent' : 'hsla(0,0%,100%,.1)'
               }"
             >
               <div class="flex items-center justify-end">#</div>
@@ -98,7 +98,7 @@
             </div>
           </div>
         </div>
-        <div class="h-14" v-if="storeComputedOfIsScrolledToPosition"></div>
+        <div class="h-14" v-if="computedOfIsScrolledToPosition"></div>
       </template>
 
       <template #default="{ item }">
@@ -190,7 +190,7 @@
 import { ref, computed, onActivated, nextTick } from 'vue';
 import { useRoute, onBeforeRouteLeave } from 'vue-router';
 import { initMainViewScrollBar } from './initScrollbar.js';
-import { store, storeComputedOfIsScrolledToPosition } from '/src/store/store.js';
+import { store, computedOfIsScrolledToPosition } from '/src/store/store.js';
 
 import { bus } from '/src/utills/eventbus.js';
 import { reqTrackListData } from './api.js';
@@ -201,22 +201,37 @@ let trackListData = [];
 let showPlaylistCover = ref(false);
 let routeToPath = '';
 
-onActivated(() => {
-  scrollPage();
+onActivated(async () => {
   store.setCurrentPlaylistInfo(route.params);
+  await nextTick();
+  scrollPage();
 });
 
-async function scrollPage() {
+function scrollPage() {
   console.log(routeToPath);
-  await nextTick();
   const { viewport } = instance.value.elements();
+  // 从歌词页面返回时 保留之前页面的滚动
   if (routeToPath.includes('/lrc')) {
+    instance.value.options({
+      scrollbars: {
+        visibility: 'hidden'
+      }
+    });
     viewport.scrollTo({ top: store.scrollTop });
     routeToPath = '';
-  } else {
-    viewport.scrollTo({ top: 0 });
-    store.setScrollTop(0); //scrollTo事件不会触发在初始化滚动条时配置项中添加的scroll事件 需要手动置成初始值
+    return;
   }
+  // 歌单之间跳转路由 不需要保留滚动
+  viewport.scrollTo({ top: 0 });
+  store.setScrollTop(0); //scrollTo事件不会触发在初始化滚动条时配置项中添加的scroll事件 需要手动置成初始值
+}
+
+function onMouseenter() {
+  instance.value.options({
+    scrollbars: {
+      visibility: 'auto'
+    }
+  });
 }
 
 onBeforeRouteLeave((to) => {
@@ -246,9 +261,10 @@ function fetchData() {
 }
 
 function play(trackItem) {
-  store.setCurrentPlayPlaylistName(trackItem.playlistname);
+  store.setCurrentPlayPlaylistName(trackItem.playlistname); //设置当前播放的歌单名字
+  //设置当前播放的音乐列表 （断开响应式连接 因为在PlayingBar组件中随机音乐列表时，会改动当前正在播放的音乐列表）
   store.setCurrentPlayTrackList([...trackListData.value]);
-  store.setCurrentPlayId({ id: trackItem.id - 1 });
+  store.setCurrentPlayId({ id: trackItem.id - 1 }); //设置当前播放音乐id
   // 触发PlayingBar组件中注册的事件
   bus.emit('onBusEventOfPlayTrack');
 }
@@ -284,18 +300,6 @@ function formatSongsTime(duration) {
   width: 100%;
   height: 100%;
 }
-
-.wrapper ::-webkit-scrollbar {
-  /* WebKit */
-  width: 0;
-  height: 0;
-}
-
-.wrapper {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-}
-
 .hover .row {
   background: hsla(0, 0%, 100%, 0.1);
 }

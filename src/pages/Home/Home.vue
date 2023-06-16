@@ -29,7 +29,7 @@
 
           <div data-testid="topbar-content-wrapper" class="pointer-events-auto flex-grow">
             <Transition name="fade">
-              <div data-testid="topbar-content" class="flex items-center gap-4" v-if="storeComputedOfIsScrolledToPosition && route.path != '/lrc'">
+              <div data-testid="topbar-content" class="flex items-center gap-4" v-if="computedOfIsScrolledToPosition && route.path != '/lrc'">
                 <div>
                   <button class="play-button | border-0 bg-transparent" aria-label="播放“每日推荐 3”">
                     <span class="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-green-500">
@@ -186,8 +186,8 @@ import { useRouter, useRoute } from 'vue-router';
 
 import { throttle, debounce } from 'lodash';
 import { getLocal } from '/src/utills/localStorage.js';
-import { initNavScrollBar } from './initScrollbar.js';
-import { store, storeComputedOfIsScrolledToPosition } from '/src/store/store.js';
+import { initScrollBar } from './initScrollbar.js';
+import { store,computedOfIsScrolledToPosition } from '/src/store/store.js';
 
 import NowPlay from '/src/components/NowPlay.vue';
 
@@ -202,7 +202,7 @@ let isShowOverlay = ref(false);
 let navScrollWrapperHeight = ref(0);
 let scrollwrapperRef = ref(null);
 
-initNavScrollBar('.nav-scroll-content'); //初始化nav滚动条
+initScrollBar('.nav-scroll-content'); //初始化nav滚动条
 
 const reqPlaylistData = (e) => router.push(`/playlist/${encodeURIComponent(e.target.innerText)}`);
 

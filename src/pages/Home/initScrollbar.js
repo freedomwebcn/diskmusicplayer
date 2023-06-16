@@ -30,14 +30,13 @@ export function initMainViewScrollBar(el, viewportel) {
         }
       }
     );
- 
   });
 
   return {
     instance
   };
 }
-export function initNavScrollBar(el) {
+export function initScrollBar(el) {
   let instance = ref(null);
 
   onMounted(() => {

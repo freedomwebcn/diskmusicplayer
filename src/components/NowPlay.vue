@@ -172,6 +172,7 @@
 
         <div class="flex w-[30%] justify-end">
           <div class="flex grow justify-end">
+            <!-- lrc btn -->
             <button
               class="relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-2 text-[#a7a7a7]"
               data-testid="lyrics-button"
@@ -188,6 +189,65 @@
                 </svg>
               </span>
             </button>
+            <!-- 播放队列 -->
+            <div>
+              <button
+                class="relative flex cursor-pointer items-center justify-center border-0 bg-transparent p-2 text-[#a7a7a7]"
+                data-testid="control-button-queue"
+                data-active="false"
+                aria-label="队列"
+                data-encore-id="buttonTertiary"
+                aria-expanded="false"
+              >
+                <span aria-hidden="true" class="fill-current">
+                  <svg role="img" height="16" width="16" aria-hidden="true" viewBox="0 0 16 16" data-encore-id="icon" class="Svg-sc-ytk21e-0 haNxPq">
+                    <path d="M15 15H1v-1.5h14V15zm0-4.5H1V9h14v1.5zm-14-7A2.5 2.5 0 0 1 3.5 1h9a2.5 2.5 0 0 1 0 5h-9A2.5 2.5 0 0 1 1 3.5zm2.5-1a1 1 0 0 0 0 2h9a1 1 0 1 0 0-2h-9z"></path>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            <!-- 调节音量 -->
+            <div class="relative flex flex-[0_1_125px] items-center">
+              <!-- 图标 -->
+              <button
+                class="flex h-8 w-8 min-w-[32px] items-center justify-center border-0 bg-transparent text-[hsla(0,0%,100%,.7)]"
+                aria-label="静音"
+                aria-describedby="volume-icon"
+                data-testid="volume-bar-toggle-mute-button"
+                aria-expanded="false"
+              >
+                <svg role="presentation" height="16" width="16" aria-hidden="true" aria-label="Volume low" id="volume-icon" viewBox="0 0 16 16" data-encore-id="icon" class="fill-current">
+                  <path
+                    d="M9.741.85a.75.75 0 0 1 .375.65v13a.75.75 0 0 1-1.125.65l-6.925-4a3.642 3.642 0 0 1-1.33-4.967 3.639 3.639 0 0 1 1.33-1.332l6.925-4a.75.75 0 0 1 .75 0zm-6.924 5.3a2.139 2.139 0 0 0 0 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 0 1 0 4.88z"
+                  ></path>
+                </svg>
+              </button>
+              <!-- 调节区域 -->
+              <div class="w-full">
+                <div class="relative h-3 w-full">
+                  <div class="h-full w-full" data-testid="progress-bar" style="--progress-bar-transform: 29.03225806451613%">
+                    <div
+                      class="group absolute top-2/4 h-1 w-full translate-y-[-50%] rounded-sm bg-[hsla(0,0%,100%,.3)]"
+                      data-testid="progress-bar-background"
+                      @mousedown="startVolumeBarSlide"
+                      ref="volumeSliderRef"
+                    >
+                      <div class="h-full w-full overflow-hidden rounded-full">
+                        <div
+                          class="h-full w-full rounded-sm bg-white group-hover:bg-green-500"
+                          :style="{ transform: `translateX(calc(-100% + ${volumeBarTransform}))`, backgroundColor: `${slideVolumeBarStatus ? 'rgb(34, 197, 94)' : ''}` }"
+                        ></div>
+                      </div>
+                      <div
+                        class="absolute top-2/4 ml-[-6px] h-3 w-3 translate-y-[-50%] rounded-full bg-transparent shadow-[0_2px_4px_0_rgba(0,0,0,.5)] group-hover:bg-white"
+                        :style="{ left: volumeBarTransform, backgroundColor: slideVolumeBarStatus ? 'white' : '' }"
+                      ></div>
+                    </div>
+                    <div style="width: 100%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -213,6 +273,10 @@ let showBgColor = ref(false);
 let shufflePlayStatus = ref(false); //随机播放状态
 // 保存原始播放列表
 let originalPlayList = [];
+
+let volume = 0.05;
+let volumeSliderRef = ref(null);
+let volumeBarTransform = ref(`${volume * 100}%`);
 
 const { log } = console;
 
@@ -246,7 +310,7 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = 0.05;
+    audio.volume = volume;
   }
   audio.src = src;
 }
@@ -394,13 +458,41 @@ function slideProgress(event) {
 function stopProgressSlide(event) {
   showBgColor.value = !(isStartAnimationFrame.value = true);
   const percentage = getPercentage(event, progressBarWrapperRef.value);
-  store.seScrollLRCstatus(true)
+  store.seScrollLRCstatus(true);
   audio.currentTime = audio.duration * percentage; //在停止调节进度条后更新当前播放进度 防止在调节进度条期间音乐不停地更新播放
   requestAnimationFrame(updatePlayProgress);
   document.removeEventListener('mousemove', slideProgress);
   document.removeEventListener('mouseup', stopProgressSlide);
 }
 
+let slideVolumeBarStatus = ref(false);
+// 音量调节
+function startVolumeBarSlide(event) {
+  console.log('vol start');
+  slideVolume(event);
+  document.addEventListener('mousemove', slideVolume);
+  document.addEventListener('mouseup', stopVolumeSlide);
+}
+
+// 调节音量 (音量值：为 0 到 1 的双精度值。0 为静音，1 为音量最大时的值。)
+function slideVolume(event) {
+  slideVolumeBarStatus.value = true;
+  const percentage = getPercentage(event, volumeSliderRef.value);
+  volumeBarTransform.value = `${percentage * 100}%`;
+  setVolume(percentage);
+}
+// 停止调节音量
+function stopVolumeSlide() {
+  slideVolumeBarStatus.value = false;
+  document.removeEventListener('mousemove', slideVolume);
+  document.removeEventListener('mouseup', stopVolumeSlide);
+}
+// 设置音量
+function setVolume(percentage) {
+  volume = Math.pow(percentage, 2);
+  audio && (audio.volume = volume);
+  // setVolumeSvg(volume);
+}
 
 function goBackOrToLrcRoute() {
   const targetRoutePath = '/lrc'; // 目标路由路径
