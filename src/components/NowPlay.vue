@@ -274,7 +274,7 @@ let shufflePlayStatus = ref(false); //随机播放状态
 // 保存原始播放列表
 let originalPlayList = [];
 
-let volume = 0.05;
+let volume = 0.15;
 let volumeSliderRef = ref(null);
 let volumeBarTransform = ref(`${volume * 100}%`);
 
@@ -310,10 +310,21 @@ function initAudio(src) {
     audio.addEventListener('canplay', oncanplay);
     audio.addEventListener('ended', playended);
     audio.addEventListener('error', errorHandler);
-    audio.volume = volume;
+    audio.volume = Math.pow(volume, 2);
   }
   audio.src = src;
 }
+
+document.addEventListener('keydown', function (event) {
+  if (event.target.nodeName == 'TEXTAREA' || event.target.nodeName == 'INPUT') {
+    return;
+  }
+  if (event.code === 'Space') {
+    console.log('空格键被按下了');
+    event.preventDefault();
+    audio && togglePlay();
+  }
+});
 
 function oncanplay() {
   log('可以播放了');
